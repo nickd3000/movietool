@@ -14,10 +14,13 @@ import org.springframework.web.client.RestTemplate;
 @SpringBootApplication
 public class Application {
     private static final Logger log = LoggerFactory.getLogger(Application.class);
-    @Autowired
     DataStore dataStore;
-    @Autowired
     Operations operations;
+
+    public Application(DataStore dataStore, Operations operations) {
+        this.dataStore = dataStore;
+        this.operations = operations;
+    }
 
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
@@ -30,9 +33,7 @@ public class Application {
 
     @Bean
     public CommandLineRunner run(RestTemplate restTemplate) throws Exception {
-
         return args -> {
-
             dataStore = operations.loadDataStore();
         };
     }

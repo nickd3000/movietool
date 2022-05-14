@@ -16,13 +16,11 @@ import java.util.Set;
 @Controller
 public class MainController {
     static String BR = "<br>";
-
     Config config;
     DataStore dataStore;
     Reports reports;
     Operations operations;
     TMDBService tmdbService;
-
     PageComposer pageComposer;
 
     public MainController(Config config, DataStore dataStore, TMDBService tmdbService, Operations operations, Reports reports, PageComposer pageComposer) {
@@ -59,7 +57,6 @@ public class MainController {
 
     public List<Link> buildSidePanelLinks() {
         List<Link> links = new ArrayList<>();
-
         links.add(new Link("Load Data Store", "/loaddatastore"));
         links.add(new Link("Scan for file changes", "/scanForChanges"));
         links.add(new Link("Retrieve Movie INFO From TMDB", "/retrievemovieinfo"));

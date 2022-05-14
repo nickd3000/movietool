@@ -147,7 +147,7 @@ public class Operations {
 
     public DataStore loadDataStore() {
 
-        String path = config.getDataFilePath();//"src/test/resources/dataStore.json";
+        String path = config.getDataFilePath();
 
         DataStore dataStore;
 
@@ -165,7 +165,7 @@ public class Operations {
     }
 
     public void saveDataStore(DataStore dataStore) {
-        String path = config.getDataFilePath();//"src/test/resources/dataStore.json";
+        String path = config.getDataFilePath();
 
         try {
             diskOperations.saveDataStore(path, dataStore);
@@ -176,14 +176,12 @@ public class Operations {
 
     // Return list of movie collections that we have at least one movie in.
     public void retrieveMovieCollections(DataStore dataStore) {
-
         Set<Integer> collectionSet = new HashSet<>();
-        List<MovieCollection> movieCollectionList = new ArrayList<>();
 
         // Get list of movie collection id's.
         for (FileListEntry fileListEntry : dataStore.getFileListEntryList()) {
             if (fileListEntry.getId() == 0) continue; // ID of 0 means we haven't found this movie.
-            Movie movie = dataStore.getMovieMap().get(fileListEntry.getId());
+
             MovieInfo movieInfo = dataStore.getMovieInfo().get(fileListEntry.getId());
 
             if (movieInfo == null) continue;

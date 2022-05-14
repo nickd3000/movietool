@@ -12,7 +12,6 @@ public class FileNameOperations {
     }
 
     public boolean isMovieFileType(String name) {
-        //String[] allowedFileTypes = {"m4v", "avi", "mkv", "mp4"};
         for (String type : config.getAllowedFileTypes()) {
             if (name.toLowerCase().contains(type)) return true;
         }
@@ -43,8 +42,6 @@ public class FileNameOperations {
             name = fileName.substring(0, lastIndexOfDot);
             name = name.trim();
         }
-
-        //System.out.println(fileName + " : [" + name + "][" + extension + "][" + date + "]");
 
         String[] result = new String[3];
         result[0] = name;
