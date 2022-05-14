@@ -54,6 +54,7 @@ public class TMDBService {
         uriVariables.put("query", movieName);
         uriVariables.put("page", 1);
         uriVariables.put("include_adult", false);
+        uriVariables.put("api_key", config.getTmdbApiKey());
 
         RestTemplate restTemplate = new RestTemplate();
         SearchMovieResult searchMovieResult = restTemplate.getForObject(url, SearchMovieResult.class, uriVariables);

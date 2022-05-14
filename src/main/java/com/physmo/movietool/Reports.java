@@ -1,5 +1,7 @@
 package com.physmo.movietool;
 
+import com.physmo.movietool.domain.CollectionReportCollection;
+import com.physmo.movietool.domain.CollectionsReportMovie;
 import com.physmo.movietool.domain.DataStore;
 import com.physmo.movietool.domain.FileListEntry;
 import com.physmo.movietool.domain.Movie;
@@ -9,6 +11,8 @@ import com.physmo.movietool.domain.movieinfo.MovieInfo;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -221,17 +225,17 @@ public class Reports {
     public String getCollectionsReport(DataStore dataStore) {
         String str = "";
 
-
         // Retrieve any collections we haven't yet received from TMDB.
         operations.retrieveMovieCollections(dataStore);
         operations.saveDataStore(dataStore);
 
-        for (MovieCollection movieCollection : dataStore.getMovieCollectionMap().values()) {
-            str += BR + "<b>" + movieCollection.getName() + "</b>";
-            for (Movie movie : movieCollection.getParts()) {
-                String title = movie.getTitle();
-                String date = movie.getRelease_date();
+        List<CollectionReportCollection> collections = new ArrayList<>();
 
+        for (MovieCollection movieCollection : dataStore.getMovieCollectionMap().values()) {
+            CollectionReportCollection newCollection = new CollectionReportCollection();
+            newCollection.setName(movieCollection.getName());
+
+            for (Movie movie : movieCollection.getParts()) {
                 boolean owned = false;
                 for (FileListEntry fileListEntry : dataStore.getFileListEntryList()) {
                     if (fileListEntry.getId() == movie.getId()) {
@@ -239,16 +243,55 @@ public class Reports {
                     }
                 }
 
-                String linkedTitle = makeLink(title, "/movieinfo/" + movie.getId());
+                CollectionsReportMovie newMovie = new CollectionsReportMovie();
+                newMovie.set(movie.getTitle(), movie.getRelease_date(),owned,movie.getId());
 
-                if (owned)
-                    str += BR + OWNED + " " + title + " (" + date + ")";
-                else
-                    str += BR + title + " (" + date + ")";
+                //String linkedTitle = makeLink(title, "/movieinfo/" + movie.getId());
+
+                newCollection.getMovies().add(newMovie);
+
             }
-            str += BR;
+            collections.add(newCollection);
         }
 
+        // Build output.
+
+        for (CollectionReportCollection collection : collections) {
+            if (fullSet(collection)) str += formatCollection(collection);
+        }
+        for (CollectionReportCollection collection : collections) {
+            if (!fullSet(collection)) str += formatCollection(collection);
+        }
+
+        return str;
+    }
+
+    public boolean fullSet(CollectionReportCollection collection) {
+        for (CollectionsReportMovie movie : collection.getMovies()) {
+            if (!movie.isOwned() || movie.getDate().isEmpty()) return false;
+            if (movie.getDate().isBlank()) return false;
+        }
+        return true;
+    }
+
+    public String formatCollection(CollectionReportCollection collection) {
+        String str = BR+BR+"<b>"+collection.getName()+"</b>";
+
+        collection.getMovies().sort((o1, o2) -> {
+            String date1 = o1.getDate();
+            String date2 = o2.getDate();
+            if (date1=="" || date1.isBlank() || date1.isEmpty()) date1="9999-99-99";
+            if (date2=="" || date2.isBlank() || date2.isEmpty()) date2="9999-99-99";
+            return date1.compareToIgnoreCase(date2);
+        });
+
+        for (CollectionsReportMovie movie : collection.getMovies()) {
+            if (movie.isOwned()) {
+                str += BR + OWNED + movie.getName() + " ("+movie.getDate()+")";
+            } else {
+                str += BR + movie.getName() + " ("+movie.getDate()+")";
+            }
+        }
         return str;
     }
 }
