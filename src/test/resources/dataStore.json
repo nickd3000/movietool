@@ -1,0 +1,18 @@
+{
+  "nameTest": "name test",
+  "fileListEntryList": [
+    {
+      "path": "",
+      "fileName": "testPath",
+      "id": 0
+    },
+    {
+      "path": "",
+      "fileName": "testPath2",
+      "id": 0
+    }
+  ],
+  "movieMap": {},
+  "movieInfo": {},
+  "movieCollectionMap": {}
+}

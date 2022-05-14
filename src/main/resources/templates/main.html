@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <style>
+        body {
+            font-family: "Lato", sans-serif;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        td, th {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+        .sidenav {
+            height: 100%;
+            width: 180px;
+            position: fixed;
+            z-index: 1;
+            top: 0;
+            left: 0;
+            background-color: #172538;
+            overflow-x: hidden;
+            padding-top: 10px;
+            color: #b5d1e7;
+        }
+
+        .sidenav a {
+            padding: 6px 8px 6px 16px;
+            text-decoration: none;
+            font-size: 12px;
+            color: #f8c048;
+            display: block;
+        }
+        .sidenav h1 {
+            text-decoration: none;
+            font-size: 26px;
+            color: rgba(250, 252, 251, 0.83);
+            /*display: block;*/
+
+        }
+        .sidenav h2 {
+            padding: 6px 8px 6px 16px;
+            text-decoration: none;
+            font-size: 14px;
+            color: #a6a090;
+            /*display: block;*/
+        }
+
+        .sidenav a:hover {
+            color: #f1f1f1;
+        }
+
+        .main {
+            margin-left: 180px; /* Same as the width of the sidenav */
+            font-size: 16px; /* Increased text to enable scrolling */
+            padding: 0px 10px;
+        }
+
+        @media screen and (max-height: 450px) {
+            .sidenav {
+                padding-top: 15px;
+            }
+
+            .sidenav a {
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidenav">
+    <a href="/"><h1>MovieTool</h1></a>
+    <h2><span th:utext="${sidePanelInfo}"/></h2>
+
+    <span th:each="item :${sidePanelLinks}">
+        <a th:href="${item.url}" th:utext="${item.text}">n</a>
+    </span>
+</div>
+
+<div class="main">
+    <h1><span th:utext="${title}"/></h1>
+    <span th:utext="${content}"/>
+</div>
+
+</body>
+</html>
+
