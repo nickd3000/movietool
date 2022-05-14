@@ -17,7 +17,6 @@ import java.util.Map;
 public class Reports {
     static String BR = "<br>";
     static String OWNED = "**OWNED**";
-
     Operations operations;
     TMDBService tmdbService;
 
@@ -30,7 +29,6 @@ public class Reports {
     }
 
     public String getLocalList() {
-
         return "";
     }
 
@@ -78,16 +76,16 @@ public class Reports {
         int numLocalFiles = dataStore.getFileListEntryList().size();
         ret += BR + "Local files: " + numLocalFiles;
         ret += BR + "Unmatched files: " + dataStore.countFilesWithNoId();
-        ret += BR + "MOVIETOOL_MOVIEFOLDERPATH: "+ config.getMovieFolderPath();
-        ret += BR + "MOVIETOOL_TMDBAPIKEY: "+ config.getTmdbApiKey();
-        ret += BR + "MOVIETOOL_DATAFILEPATH: "+ config.getDataFilePath();
+        ret += BR + "MOVIETOOL_MOVIEFOLDERPATH: " + config.getMovieFolderPath();
+        ret += BR + "MOVIETOOL_TMDBAPIKEY: " + config.getTmdbApiKey();
+        ret += BR + "MOVIETOOL_DATAFILEPATH: " + config.getDataFilePath();
 
-        String fileTypes="";
+        String fileTypes = "";
         for (String allowedFileType : config.getAllowedFileTypes()) {
-            fileTypes+=allowedFileType+",";
+            fileTypes += allowedFileType + ",";
         }
 
-        ret += BR + "MOVIETOOL_ALLOWEDFILETYPES: "+ fileTypes;
+        ret += BR + "MOVIETOOL_ALLOWEDFILETYPES: " + fileTypes;
 
 
         return ret;
@@ -188,7 +186,7 @@ public class Reports {
     }
 
     public String findMissingPopularMoviesForYear(DataStore dataStore, int year) {
-        //TMDBService tmdbService = new TMDBService();
+
         Map<Integer, Movie> popularMoviesByYear = tmdbService.getPopularMoviesByYear(year);
         String str = "";
         List<String> ownedList = new ArrayList<>();
