@@ -30,7 +30,7 @@ public class TestFileNameOperations {
     public void testExtractFileNameParts() {
         FileNameOperations fileNameOperations = new FileNameOperations(config);
 
-        String[] strings = fileNameOperations.extractFileNameParts("test (1990).mov");
+        String[] strings = fileNameOperations.splitFileName("test (1990).mov");
 
         Assertions.assertEquals("test", strings[0]);
         Assertions.assertEquals("1990", strings[1]);
