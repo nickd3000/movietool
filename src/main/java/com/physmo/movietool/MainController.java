@@ -15,13 +15,13 @@ import java.util.Set;
 
 @Controller
 public class MainController {
-    static String BR = "<br>";
-    Config config;
-    DataStore dataStore;
-    Reports reports;
-    Operations operations;
-    TMDBService tmdbService;
-    PageComposer pageComposer;
+    static final String BR = "<br>";
+    final Config config;
+    final DataStore dataStore;
+    final Reports reports;
+    final Operations operations;
+    final TMDBService tmdbService;
+    final PageComposer pageComposer;
 
     public MainController(Config config, DataStore dataStore, TMDBService tmdbService, Operations operations, Reports reports, PageComposer pageComposer) {
         this.config = config;
@@ -52,8 +52,7 @@ public class MainController {
     }
 
     public String sidePanelInfo() {
-        String str = "Ver: "+config.getBuildVersion();
-        return str;
+        return "Ver: " + config.getBuildVersion();
     }
 
     public List<Link> buildSidePanelLinks() {
@@ -191,8 +190,7 @@ public class MainController {
     }
 
     public String makeLink(String text, String link) {
-        String str = "<a href='" + link + "'>" + text + "</a>";
-        return str;
+        return "<a href='" + link + "'>" + text + "</a>";
     }
 
     @GetMapping("/collectionsreport")

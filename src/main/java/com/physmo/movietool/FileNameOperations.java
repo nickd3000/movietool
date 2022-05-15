@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class FileNameOperations {
 
-    Config config;
+    final Config config;
 
     public FileNameOperations(Config config) {
         this.config = config;
@@ -43,9 +43,7 @@ public class FileNameOperations {
             name = name.trim();
         }
 
-        String[] result = {name, date, extension};
-
-        return result;
+        return new String[]{name, date, extension};
     }
 
 }

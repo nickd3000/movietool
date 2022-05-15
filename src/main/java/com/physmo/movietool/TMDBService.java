@@ -18,7 +18,7 @@ import java.util.Map;
 @Component
 public class TMDBService {
 
-    Config config;
+    final Config config;
 
     public TMDBService(Config config) {
         this.config = config;
@@ -56,8 +56,7 @@ public class TMDBService {
         uriVariables.put("api_key", config.getTmdbApiKey());
 
         RestTemplate restTemplate = new RestTemplate();
-        SearchMovieResult searchMovieResult = restTemplate.getForObject(url, SearchMovieResult.class, uriVariables);
-        return searchMovieResult;
+        return restTemplate.getForObject(url, SearchMovieResult.class, uriVariables);
     }
 
 
@@ -69,8 +68,7 @@ public class TMDBService {
         uriVariables.put("id", movieId);
 
         RestTemplate restTemplate = new RestTemplate();
-        MovieInfo movieInfo = restTemplate.getForObject(url, MovieInfo.class, uriVariables);
-        return movieInfo;
+        return restTemplate.getForObject(url, MovieInfo.class, uriVariables);
     }
 
     // TODO: ability to retrieve more pages.
@@ -111,7 +109,6 @@ public class TMDBService {
         uriVariables.put("id", collectionId);
 
         RestTemplate restTemplate = new RestTemplate();
-        MovieCollection movieCollection = restTemplate.getForObject(url, MovieCollection.class, uriVariables);
-        return movieCollection;
+        return restTemplate.getForObject(url, MovieCollection.class, uriVariables);
     }
 }
