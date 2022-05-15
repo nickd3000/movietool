@@ -1,7 +1,11 @@
 # MovieTool
 
+![Image example page](docs/image/movietool_popular.png)
+
 A Java based application for scanning movie file collections.
 A [TMDB API key](https://developers.themoviedb.org/3/getting-started/introduction) is required to use this.
+
+When running, access using a web browser at [http://localhost:2001](http://localhost:2001)
 
 ### Features
 - Scan your library and retrieve movie details from [TMDB](https://www.themoviedb.org).

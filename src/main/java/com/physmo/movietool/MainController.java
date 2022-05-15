@@ -52,7 +52,8 @@ public class MainController {
     }
 
     public String sidePanelInfo() {
-        return config.getBuildVersion();
+        String str = "Ver: "+config.getBuildVersion();
+        return str;
     }
 
     public List<Link> buildSidePanelLinks() {
@@ -94,7 +95,6 @@ public class MainController {
         operations.retrieveTMDBDataForFileList(dataStore, false);
         List<String> output = operations.retrieveTMDBMovieInfo(dataStore);
 
-
         operations.saveDataStore(dataStore);
 
         String str = "";
@@ -117,7 +117,7 @@ public class MainController {
     @GetMapping("/loaddatastore")
     public String loadDataStore(Model model) {
 
-        dataStore = operations.loadDataStore();
+        operations.loadDataStore(dataStore);
 
         String str = "";
         str += "Number of files: " + dataStore.getFileListEntryList().size();

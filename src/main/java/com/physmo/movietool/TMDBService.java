@@ -26,7 +26,6 @@ public class TMDBService {
 
     public Movie retrieveTMDBDataForFile(String fileName, String year) {
         SearchMovieResult result = searchMovie(fileName);
-        System.out.println("results found: " + result.getResults().length);
 
         // find the first entry that matches the given year
 

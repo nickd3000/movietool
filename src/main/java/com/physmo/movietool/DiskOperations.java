@@ -3,6 +3,8 @@ package com.physmo.movietool;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.physmo.movietool.domain.DataStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -14,6 +16,8 @@ import java.io.Writer;
 
 @Component
 public class DiskOperations {
+    private static final Logger log = LoggerFactory.getLogger(DiskOperations.class);
+
     Config config;
 
     public DiskOperations(Config config) {
@@ -28,12 +32,15 @@ public class DiskOperations {
     }
 
     public void saveDataStore(String filePath, DataStore dataStore) throws IOException {
+        log.info("Saving data store.");
         File f = new File(filePath);
-        System.out.println("Checking if file exists");
+
+        log.info("Checking if file exists");
+
         if (!f.isFile()) {
-            System.out.println("file doesnt exist creating..." + f.getCanonicalFile());
+            log.info("file doesnt exist creating..." + f.getCanonicalFile());
             f.createNewFile();
-            System.out.println("created");
+            log.info("created data store file");
         }
 
         Writer writer = new FileWriter(filePath);
@@ -41,11 +48,20 @@ public class DiskOperations {
         gson.toJson(dataStore, writer);
         writer.flush(); //flush data to file   <---
         writer.close(); //close write          <---
+
+        log.info("Saved data store.");
     }
 
-    public DataStore loadDataStore(String filePath) throws FileNotFoundException {
+    public DataStore loadDataStore(String filePath, DataStore dataStore) throws FileNotFoundException {
+        log.info("Loading data store.");
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         DataStore deserializedDataStore = gson.fromJson(new FileReader(filePath), DataStore.class);
+
+        dataStore.setFileListEntryList(deserializedDataStore.getFileListEntryList());
+        dataStore.setMovieCollectionMap(deserializedDataStore.getMovieCollectionMap());
+        dataStore.setMovieInfo(deserializedDataStore.getMovieInfo());
+        dataStore.setMovieMap(deserializedDataStore.getMovieMap());
+
         return deserializedDataStore;
     }
 
