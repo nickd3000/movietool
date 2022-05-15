@@ -34,7 +34,7 @@ public class Application {
     @Bean
     public CommandLineRunner run(RestTemplate restTemplate) throws Exception {
         return args -> {
-            dataStore = operations.loadDataStore();
+            operations.loadDataStore(dataStore);
         };
     }
 

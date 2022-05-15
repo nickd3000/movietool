@@ -8,17 +8,19 @@ import com.physmo.movietool.domain.Movie;
 import com.physmo.movietool.domain.MovieCollection;
 import com.physmo.movietool.domain.movieinfo.CollectionDetails;
 import com.physmo.movietool.domain.movieinfo.MovieInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Component
 public class Reports {
+    private static final Logger log = LoggerFactory.getLogger(Reports.class);
+
     static String BR = "<br>";
     static String OWNED = "**OWNED**";
     Operations operations;
@@ -107,8 +109,13 @@ public class Reports {
             output += "<td>" + fileListEntry.getId() + "</td>";
             if (fileListEntry.getId() != 0) {
                 Movie movie = dataStore.getMovieMap().get(fileListEntry.getId());
-                String linkedTitle = makeLink(movie.getTitle(), "/movieinfo/" + movie.getId());
-                output += "<td>" + linkedTitle + "</td>";
+                if (movie==null) {
+                    output += "<td>" + "movie not found in map" + "</td>";
+                }
+                else {
+                    String linkedTitle = makeLink(movie.getTitle(), "/movieinfo/" + movie.getId());
+                    output += "<td>" + linkedTitle + "</td>";
+                }
             } else {
                 output += "<td>" + "unmatched" + "</td>";
             }
@@ -177,10 +184,11 @@ public class Reports {
 
         for (Integer movieId : counts.keySet()) {
             if (counts.get(movieId) < 2) continue;
+            MovieInfo movieInfo = dataStore.getMovieInfo().get(movieId);
             str += BR;
             for (FileListEntry file : dataStore.getFileListEntryList()) {
                 if (file.getId() == movieId) {
-                    str += BR + file.getFileName();
+                    str += BR + file.getFileName()+" - TMDB ID:"+movieId+" - TMDB Title:"+movieInfo.getOriginal_title();
                 }
             }
         }
@@ -224,6 +232,7 @@ public class Reports {
 
     public String getCollectionsReport(DataStore dataStore) {
         String str = "";
+        log.info("Generating collections report");
 
         // Retrieve any collections we haven't yet received from TMDB.
         operations.retrieveMovieCollections(dataStore);
@@ -257,16 +266,18 @@ public class Reports {
         // Build output.
 
         for (CollectionReportCollection collection : collections) {
-            if (fullSet(collection)) str += formatCollection(collection);
+            if (isFullSet(collection)) str += formatCollection(collection);
         }
         for (CollectionReportCollection collection : collections) {
-            if (!fullSet(collection)) str += formatCollection(collection);
+            if (!isFullSet(collection)) str += formatCollection(collection);
         }
+
+        log.info("Generating collections report - DONE");
 
         return str;
     }
 
-    public boolean fullSet(CollectionReportCollection collection) {
+    public boolean isFullSet(CollectionReportCollection collection) {
         for (CollectionsReportMovie movie : collection.getMovies()) {
             if (!movie.isOwned() || movie.getDate().isEmpty()) return false;
             if (movie.getDate().isBlank()) return false;
@@ -280,8 +291,8 @@ public class Reports {
         collection.getMovies().sort((o1, o2) -> {
             String date1 = o1.getDate();
             String date2 = o2.getDate();
-            if (date1=="" || date1.isBlank() || date1.isEmpty()) date1="9999-99-99";
-            if (date2=="" || date2.isBlank() || date2.isEmpty()) date2="9999-99-99";
+            if (date1.isEmpty()) date1="9999-99-99";
+            if (date2.isEmpty()) date2="9999-99-99";
             return date1.compareToIgnoreCase(date2);
         });
 

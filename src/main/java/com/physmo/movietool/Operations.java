@@ -3,8 +3,9 @@ package com.physmo.movietool;
 import com.physmo.movietool.domain.DataStore;
 import com.physmo.movietool.domain.FileListEntry;
 import com.physmo.movietool.domain.Movie;
-import com.physmo.movietool.domain.MovieCollection;
 import com.physmo.movietool.domain.movieinfo.MovieInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -19,6 +20,11 @@ import java.util.Set;
 
 @Component
 public class Operations {
+
+    private static final Logger log = LoggerFactory.getLogger(Operations.class);
+
+    private static int MAX_RETRIEVALS_PER_RUN = 1000;
+
     Config config;
     DiskOperations diskOperations;
     TMDBService tmdbService;
@@ -34,11 +40,13 @@ public class Operations {
     // check for known files that no longer exist
     // find new files
     public Map<String, Set<String>> refreshFileList(DataStore dataStore, String filePath) {
+        log.info("Refreshing file list - checking for new and changed files");
         Set<String> removedFileSet = removeMissingFiles(dataStore, filePath);
         Set<String> newFileSet = retrieveFileList(dataStore, filePath);
         Map<String, Set<String>> changedFiles = new HashMap<>();
         changedFiles.put("removedFileSet", removedFileSet);
         changedFiles.put("newFileSet", newFileSet);
+        log.info("DONE");
         return changedFiles;
     }
 
@@ -52,7 +60,7 @@ public class Operations {
             if (doesFileListEntryExist(fileListEntry, dataStore) == true) continue;
             if (!fileNameOperations.isMovieFileType(file.getName())) continue;
 
-            String[] parts = fileNameOperations.extractFileNameParts(file.getName());
+            String[] parts = fileNameOperations.splitFileName(file.getName());
             fileListEntry.setNamePart(parts[0]);
             fileListEntry.setDatePart(parts[1]);
             fileListEntry.setExtensionPart(parts[2]);
@@ -89,7 +97,9 @@ public class Operations {
                 removedFilesSet.add(fileName);
             }
         }
+        log.info("Removing " + removeList.size() + " file entries");
         dataStore.getFileListEntryList().removeAll(removeList);
+
         return removedFilesSet;
     }
 
@@ -103,17 +113,17 @@ public class Operations {
 
             Movie movie = tmdbService.retrieveTMDBDataForFile(fileListEntry.getNamePart(), fileListEntry.getDatePart());
             if (movie == null) {
-                System.out.println("Movie not found on TMDB:" + fileListEntry.getNamePart());
+                log.info("Movie not found on TMDB:" + fileListEntry.getNamePart());
                 continue;
             }
-            System.out.println("Found :" + fileListEntry.getNamePart() + " as " + movie.getTitle());
+            log.info("Found :" + fileListEntry.getNamePart() + " as " + movie.getTitle());
 
             int movieId = movie.getId();
             dataStore.getMovieMap().put(movieId, movie);
             fileListEntry.setId(movieId);
 
             count++;
-            if (count > 1250) break;
+            if (count > MAX_RETRIEVALS_PER_RUN) break;
         }
 
     }
@@ -145,23 +155,23 @@ public class Operations {
         return output;
     }
 
-    public DataStore loadDataStore() {
+    public void loadDataStore(DataStore dataStore) {
 
         String path = config.getDataFilePath();
 
-        DataStore dataStore;
+        //DataStore dataStore;
 
         try {
-            dataStore = diskOperations.loadDataStore(path);
-            System.out.println("Loaded data store");
+            diskOperations.loadDataStore(path, dataStore);
+            //System.out.println("Loaded data store");
         } catch (FileNotFoundException e) {
-            System.out.println("Data store not found, creating new.");
+            //System.out.println("Data store not found, creating new.");
             dataStore = new DataStore();
             saveDataStore(dataStore);
         }
 
 
-        return dataStore;
+        //return dataStore;
     }
 
     public void saveDataStore(DataStore dataStore) {
@@ -177,7 +187,7 @@ public class Operations {
     // Return list of movie collections that we have at least one movie in.
     public void retrieveMovieCollections(DataStore dataStore) {
         Set<Integer> collectionSet = new HashSet<>();
-
+        log.info("Retrieving movie collection data from MDB");
         // Get list of movie collection id's.
         for (FileListEntry fileListEntry : dataStore.getFileListEntryList()) {
             if (fileListEntry.getId() == 0) continue; // ID of 0 means we haven't found this movie.
@@ -197,6 +207,6 @@ public class Operations {
             dataStore.getMovieCollectionMap().put(collectionId, tmdbService.getMovieCollection(collectionId));
 
         }
-
+        log.info("DONE");
     }
 }

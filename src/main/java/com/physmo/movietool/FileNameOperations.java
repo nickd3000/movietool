@@ -18,7 +18,7 @@ public class FileNameOperations {
         return false;
     }
 
-    public String[] extractFileNameParts(String fileName) {
+    public String[] splitFileName(String fileName) {
         String extension = "";
         String date = "";
         String name = "";
@@ -43,10 +43,7 @@ public class FileNameOperations {
             name = name.trim();
         }
 
-        String[] result = new String[3];
-        result[0] = name;
-        result[1] = date;
-        result[2] = extension;
+        String[] result = {name, date, extension};
 
         return result;
     }
