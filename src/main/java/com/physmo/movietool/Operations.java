@@ -23,12 +23,10 @@ public class Operations {
 
     private static final Logger log = LoggerFactory.getLogger(Operations.class);
 
-    private static int MAX_RETRIEVALS_PER_RUN = 1000;
-
-    Config config;
-    DiskOperations diskOperations;
-    TMDBService tmdbService;
-    FileNameOperations fileNameOperations;
+    final Config config;
+    final DiskOperations diskOperations;
+    final TMDBService tmdbService;
+    final FileNameOperations fileNameOperations;
 
     public Operations(Config config, DiskOperations diskOperations, TMDBService tmdbService, FileNameOperations fileNameOperations) {
         this.config = config;
@@ -57,7 +55,7 @@ public class Operations {
 
         for (File file : allFilesInDirectory) {
             FileListEntry fileListEntry = new FileListEntry(file.getPath(), file.getName());
-            if (doesFileListEntryExist(fileListEntry, dataStore) == true) continue;
+            if (doesFileListEntryExist(fileListEntry, dataStore)) continue;
             if (!fileNameOperations.isMovieFileType(file.getName())) continue;
 
             String[] parts = fileNameOperations.splitFileName(file.getName());
@@ -109,7 +107,7 @@ public class Operations {
 
         List<FileListEntry> fileListEntryList = dataStore.getFileListEntryList();
         for (FileListEntry fileListEntry : fileListEntryList) {
-            if (fileListEntry.getId() != 0 && override == false) continue;
+            if (fileListEntry.getId() != 0 && !override) continue;
 
             Movie movie = tmdbService.retrieveTMDBDataForFile(fileListEntry.getNamePart(), fileListEntry.getDatePart());
             if (movie == null) {
@@ -123,6 +121,7 @@ public class Operations {
             fileListEntry.setId(movieId);
 
             count++;
+            int MAX_RETRIEVALS_PER_RUN = 1000;
             if (count > MAX_RETRIEVALS_PER_RUN) break;
         }
 

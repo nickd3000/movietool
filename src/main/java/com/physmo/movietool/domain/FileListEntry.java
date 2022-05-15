@@ -3,8 +3,8 @@ package com.physmo.movietool.domain;
 import java.io.Serializable;
 
 public class FileListEntry implements Serializable {
-    String path = "";
-    String fileName = "";
+    String path;
+    String fileName;
     String namePart;
     String datePart;
     String extensionPart;

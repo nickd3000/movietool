@@ -19,14 +19,13 @@ import java.util.Map;
 
 @Component
 public class Reports {
+    static final String BR = "<br>";
+    static final String OWNED = "**OWNED**";
     private static final Logger log = LoggerFactory.getLogger(Reports.class);
+    final Operations operations;
+    final TMDBService tmdbService;
 
-    static String BR = "<br>";
-    static String OWNED = "**OWNED**";
-    Operations operations;
-    TMDBService tmdbService;
-
-    Config config;
+    final Config config;
 
     public Reports(Config config, Operations operations, TMDBService tmdbService) {
         this.operations = operations;
@@ -73,8 +72,7 @@ public class Reports {
     }
 
     public String makeTwoColumnTableEntry(String str1, String str2) {
-        String str = "<tr><td>" + str1 + "</td><td>" + str2 + "</td></tr>";
-        return str;
+        return "<tr><td>" + str1 + "</td><td>" + str2 + "</td></tr>";
     }
 
     public String getLibrarySummary(DataStore dataStore) {
@@ -109,10 +107,9 @@ public class Reports {
             output += "<td>" + fileListEntry.getId() + "</td>";
             if (fileListEntry.getId() != 0) {
                 Movie movie = dataStore.getMovieMap().get(fileListEntry.getId());
-                if (movie==null) {
+                if (movie == null) {
                     output += "<td>" + "movie not found in map" + "</td>";
-                }
-                else {
+                } else {
                     String linkedTitle = makeLink(movie.getTitle(), "/movieinfo/" + movie.getId());
                     output += "<td>" + linkedTitle + "</td>";
                 }
@@ -144,8 +141,7 @@ public class Reports {
     }
 
     public String makeLink(String text, String link) {
-        String str = "<a href='" + link + "'>" + text + "</a>";
-        return str;
+        return "<a href='" + link + "'>" + text + "</a>";
     }
 
     public String getUnmatchedFileList(DataStore dataStore) {
@@ -170,7 +166,7 @@ public class Reports {
     }
 
     public String findDuplicates(DataStore dataStore) {
-        Map<Integer, Integer> counts = new HashMap();
+        Map<Integer, Integer> counts = new HashMap<>();
         String str = "";
         for (FileListEntry file : dataStore.getFileListEntryList()) {
             if (file.getId() == 0) continue;
@@ -188,7 +184,7 @@ public class Reports {
             str += BR;
             for (FileListEntry file : dataStore.getFileListEntryList()) {
                 if (file.getId() == movieId) {
-                    str += BR + file.getFileName()+" - TMDB ID:"+movieId+" - TMDB Title:"+movieInfo.getOriginal_title();
+                    str += BR + file.getFileName() + " - TMDB ID:" + movieId + " - TMDB Title:" + movieInfo.getOriginal_title();
                 }
             }
         }
@@ -209,6 +205,7 @@ public class Reports {
             for (FileListEntry fileListEntry : dataStore.getFileListEntryList()) {
                 if (fileListEntry.getId() == movieId) {
                     owned = true;
+                    break;
                 }
             }
 
@@ -249,11 +246,12 @@ public class Reports {
                 for (FileListEntry fileListEntry : dataStore.getFileListEntryList()) {
                     if (fileListEntry.getId() == movie.getId()) {
                         owned = true;
+                        break;
                     }
                 }
 
                 CollectionsReportMovie newMovie = new CollectionsReportMovie();
-                newMovie.set(movie.getTitle(), movie.getRelease_date(),owned,movie.getId());
+                newMovie.set(movie.getTitle(), movie.getRelease_date(), owned, movie.getId());
 
                 //String linkedTitle = makeLink(title, "/movieinfo/" + movie.getId());
 
@@ -286,21 +284,21 @@ public class Reports {
     }
 
     public String formatCollection(CollectionReportCollection collection) {
-        String str = BR+BR+"<b>"+collection.getName()+"</b>";
+        String str = BR + BR + "<b>" + collection.getName() + "</b>";
 
         collection.getMovies().sort((o1, o2) -> {
             String date1 = o1.getDate();
             String date2 = o2.getDate();
-            if (date1.isEmpty()) date1="9999-99-99";
-            if (date2.isEmpty()) date2="9999-99-99";
+            if (date1.isEmpty()) date1 = "9999-99-99";
+            if (date2.isEmpty()) date2 = "9999-99-99";
             return date1.compareToIgnoreCase(date2);
         });
 
         for (CollectionsReportMovie movie : collection.getMovies()) {
             if (movie.isOwned()) {
-                str += BR + OWNED + movie.getName() + " ("+movie.getDate()+")";
+                str += BR + OWNED + movie.getName() + " (" + movie.getDate() + ")";
             } else {
-                str += BR + movie.getName() + " ("+movie.getDate()+")";
+                str += BR + movie.getName() + " (" + movie.getDate() + ")";
             }
         }
         return str;

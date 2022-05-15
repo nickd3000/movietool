@@ -2,12 +2,10 @@ package com.physmo.movietool;
 
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-
 public class TestDiskOperations {
 
     @Test
-    public void t1() throws IOException {
+    public void t1() {
         // todo: needs fixed after changing constructor
 
 //        DiskOperations diskOperations = new DiskOperations();
