@@ -18,7 +18,7 @@ import java.io.Writer;
 public class DiskOperations {
     private static final Logger log = LoggerFactory.getLogger(DiskOperations.class);
 
-    Config config;
+    final Config config;
 
     public DiskOperations(Config config) {
         this.config = config;
@@ -26,9 +26,8 @@ public class DiskOperations {
 
     public File[] getAllFilesInDirectory(String path) {
         File f = new File(path);
-        File[] files = f.listFiles();
 
-        return files;
+        return f.listFiles();
     }
 
     public void saveDataStore(String filePath, DataStore dataStore) throws IOException {
@@ -52,7 +51,7 @@ public class DiskOperations {
         log.info("Saved data store.");
     }
 
-    public DataStore loadDataStore(String filePath, DataStore dataStore) throws FileNotFoundException {
+    public void loadDataStore(String filePath, DataStore dataStore) throws FileNotFoundException {
         log.info("Loading data store.");
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         DataStore deserializedDataStore = gson.fromJson(new FileReader(filePath), DataStore.class);
@@ -62,7 +61,6 @@ public class DiskOperations {
         dataStore.setMovieInfo(deserializedDataStore.getMovieInfo());
         dataStore.setMovieMap(deserializedDataStore.getMovieMap());
 
-        return deserializedDataStore;
     }
 
 

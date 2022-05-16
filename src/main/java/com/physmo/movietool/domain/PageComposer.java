@@ -7,7 +7,7 @@ import java.util.Set;
 
 @Component
 public class PageComposer {
-    static String BR = "<br>";
+    static final String BR = "<br>";
 //changedFiles.put("removedFileSet", removedFileSet);
 //changedFiles.put("newFileSet", newFileSet);
 
