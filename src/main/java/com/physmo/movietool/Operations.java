@@ -50,6 +50,8 @@ public class Operations {
 
     public Set<String> retrieveFileList(DataStore dataStore, String filePath) {
 
+        log.info("Movie folder: "+filePath);
+
         Set<String> newFilesSet = new HashSet<>();
         File[] allFilesInDirectory = diskOperations.getAllFilesInDirectory(filePath);
 
