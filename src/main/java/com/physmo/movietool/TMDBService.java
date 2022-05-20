@@ -73,11 +73,12 @@ public class TMDBService {
 
     // TODO: ability to retrieve more pages.
     public Map<Integer, Movie> getPopularMoviesByYear(int year) {
-        String url = "https://api.themoviedb.org/3/discover/movie?api_key={api_key}&primary_release_year={year}&with_original_language=en&sort_by={sort}";
+        String url = "https://api.themoviedb.org/3/discover/movie?api_key={api_key}&primary_release_year={year}&with_original_language=en&sort_by={sort}&page={page}";
         Map<String, Object> uriVariables = new HashMap<>();
         uriVariables.put("api_key", config.getTmdbApiKey());
         uriVariables.put("year", Integer.toString(year));
         uriVariables.put("sort", "popularity.desc");
+        uriVariables.put("page", "1");
 
         List<String> sortList = new ArrayList<>();
         sortList.add("vote_count.desc");
@@ -87,13 +88,18 @@ public class TMDBService {
 
         Map<Integer, Movie> movieMap = new HashMap<>();
 
-        for (String sortBy : sortList) {
-            RestTemplate restTemplate = new RestTemplate();
-            uriVariables.put("sort", sortBy);
-            SearchMovieResult searchMovieResult = restTemplate.getForObject(url, SearchMovieResult.class, uriVariables);
+        int pageCount = 2;
 
-            for (Movie movie : searchMovieResult.getResults()) {
-                movieMap.put(movie.getId(), movie);
+        for (String sortBy : sortList) {
+            for (int page=1;page<=pageCount;page++) {
+                RestTemplate restTemplate = new RestTemplate();
+                uriVariables.put("sort", sortBy);
+                uriVariables.put("page", ""+page);
+                SearchMovieResult searchMovieResult = restTemplate.getForObject(url, SearchMovieResult.class, uriVariables);
+
+                for (Movie movie : searchMovieResult.getResults()) {
+                    movieMap.put(movie.getId(), movie);
+                }
             }
         }
 
