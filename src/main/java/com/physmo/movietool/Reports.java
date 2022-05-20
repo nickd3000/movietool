@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +21,7 @@ import java.util.Map;
 @Component
 public class Reports {
     static final String BR = "<br>";
+    static final String INFO = "&#x2139;";
     static final String OWNED = "**OWNED**";
     private static final Logger log = LoggerFactory.getLogger(Reports.class);
     final Operations operations;
@@ -197,8 +199,9 @@ public class Reports {
 
         Map<Integer, Movie> popularMoviesByYear = tmdbService.getPopularMoviesByYear(year);
         String str = "";
-        List<String> ownedList = new ArrayList<>();
-        List<String> needList = new ArrayList<>();
+        List<Movie> ownedList = new ArrayList<>();
+        List<Movie> needList = new ArrayList<>();
+
         for (Integer movieId : popularMoviesByYear.keySet()) {
             Movie movie = popularMoviesByYear.get(movieId);
             boolean owned = false;
@@ -209,21 +212,31 @@ public class Reports {
                 }
             }
 
-            if (owned)
-                ownedList.add(OWNED + " " + movie.getTitle());
-            else
-                needList.add(movie.getTitle());
+            if (owned) {
+                ownedList.add(movie);
+            }
+            else {
+                needList.add(movie);
+            }
         }
 
-        for (String s : ownedList) {
-            str += BR + s;
+        ownedList.sort(Comparator.comparing(Movie::getVote_average).reversed());
+        needList.sort(Comparator.comparing(Movie::getVote_average).reversed());
+
+        for (Movie m : ownedList) {
+            str += BR + OWNED + " " + m.getTitle()+"  "+m.getVote_average();;
         }
         str += BR;
-        for (String s : needList) {
-            str += BR + s;
+        for (Movie m : needList) {
+            str += BR + addTooltipToText(m.getTitle()+" "+year, m.getOverview())+"  "+m.getVote_average();
         }
 
 
+        return str;
+    }
+
+    public String addTooltipToText(String text, String tooltip) {
+        String str = text+" <span class='info' title='"+tooltip+"' class='visible'>"+INFO+"</span>";
         return str;
     }
 
