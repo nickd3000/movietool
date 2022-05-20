@@ -1,4 +1,4 @@
-FROM adoptopenjdk/openjdk11:jre-11.0.9.1_1-alpine@sha256:b6ab039066382d39cfc843914ef1fc624aa60e2a16ede433509ccadd6d995b1f
+FROM adoptopenjdk/openjdk11:jre-11.0.6_10-alpine
 
 RUN mkdir /app
 COPY ./target/movietool-0.0.1.jar /app/movietool-0.0.1.jar
