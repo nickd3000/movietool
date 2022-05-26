@@ -1,6 +1,6 @@
-FROM adoptopenjdk/openjdk11:jre-11.0.6_10-alpine
+FROM --platform=linux/arm64 openjdk:11-jdk-slim
 
 RUN mkdir /app
-COPY ./target/movietool-0.0.1.jar /app/movietool-0.0.1.jar
+COPY ./target/movietool-1.0.0.jar /app/movietool-1.0.0.jar
 WORKDIR /usr/src/project
-CMD "java" "-jar" "movietool-0.0.1.jar"
+CMD "java" "-jar" "/app/movietool-1.0.0.jar"

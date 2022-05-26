@@ -11,6 +11,8 @@ public class Config {
     private String[] allowedFileTypes;
     @Value("${movietool.data-file-path}")
     private String dataFilePath;
+    @Value("${movietool.data-file-name}")
+    private String dataFileName;
     @Value("${movietool.movie-folder-path}")
     private String movieFolderPath;
     @Value("${application.name}")
@@ -21,6 +23,14 @@ public class Config {
     private String buildTimestamp;
     @Value("${movietool.tmdb-api-key}")
     private String tmdbApiKey;
+
+    public String getDataFileName() {
+        return dataFileName;
+    }
+
+    public void setDataFileName(String dataFileName) {
+        this.dataFileName = dataFileName;
+    }
 
     public String getTmdbApiKey() {
         return tmdbApiKey;
