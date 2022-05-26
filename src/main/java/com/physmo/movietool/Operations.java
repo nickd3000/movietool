@@ -158,7 +158,7 @@ public class Operations {
 
     public void loadDataStore(DataStore dataStore) {
 
-        String path = config.getDataFilePath();
+        String path = config.getDataFilePath()+File.separatorChar+config.getDataFileName();
 
         //DataStore dataStore;
 
@@ -176,7 +176,7 @@ public class Operations {
     }
 
     public void saveDataStore(DataStore dataStore) {
-        String path = config.getDataFilePath();
+        String path = config.getDataFilePath()+File.separatorChar+config.getDataFileName();
 
         try {
             diskOperations.saveDataStore(path, dataStore);
@@ -189,7 +189,8 @@ public class Operations {
     public void retrieveMovieCollections(DataStore dataStore) {
         Set<Integer> collectionSet = new HashSet<>();
         log.info("Retrieving movie collection data from MDB");
-        // Get list of movie collection id's.
+
+        // Get list of movie collection IDs.
         for (FileListEntry fileListEntry : dataStore.getFileListEntryList()) {
             if (fileListEntry.getId() == 0) continue; // ID of 0 means we haven't found this movie.
 

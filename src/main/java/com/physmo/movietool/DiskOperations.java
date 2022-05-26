@@ -27,6 +27,10 @@ public class DiskOperations {
     public File[] getAllFilesInDirectory(String path) {
         File f = new File(path);
 
+        if (!f.exists()) {
+            System.out.println("!!!! Path does not exist !!!! "+path);
+        }
+
         return f.listFiles();
     }
 
