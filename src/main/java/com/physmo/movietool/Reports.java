@@ -244,7 +244,7 @@ public class Reports {
     }
 
     public String addTooltipToText(String text, String tooltip) {
-        String str = text + " <span class='badge text-bg-primary' data-bs-toggle='tooltip' data-bs-placement='right' title='" + tooltip + "' >info</span>";
+        String str = text + " <span  data-bs-toggle='tooltip' data-bs-placement='right' title='" + tooltip + "' ><span class='badge text-bg-primary'>info</span></span>";
         return str;
     }
 
@@ -350,7 +350,6 @@ public class Reports {
             }
         }
 
-        String BAR = "==========================================================================";
 
         for (Integer key : yearCounts.keySet()) {
 
@@ -358,11 +357,14 @@ public class Reports {
 
             String yearLink = makeLink(key.toString(), "findmissingpopularmovies/" + key);
 
-            str += BR + "" + yearLink + " ";
-            int barLength = (int) ((double) BAR.length() * ((double) count) / (double) maxCount);
-            if (barLength > BAR.length()) barLength = BAR.length();
-            str += BAR.substring(0, barLength) + "(" + count + ")";
-
+            str += "<div class='row'>";
+            str += "<div class='col-md-1'>";
+            str += "" + yearLink + " ";
+            str += "</div>";
+            str += "<div class='col-md-10'>";
+            str+=createHtmlBar(count,maxCount);
+            str += "</div>";
+            str += "</div>";
         }
 
 
@@ -374,5 +376,17 @@ public class Reports {
         if (releaseDate == null || releaseDate.length() < 6) return -1;
         int year = Integer.parseInt(releaseDate.substring(0, 4));
         return year;
+    }
+
+    public String createHtmlBar(int count, int maxCount) {
+        int maxSize = 100;
+        int barLength = (int) ((double) maxSize * ((double) count) / (double) maxCount);
+        if (barLength < 0) barLength = 0;
+        if (barLength > 100) barLength = 100;
+
+        String str = "<span class='progress  w-80'>";
+        str += "<span class='progress-bar bg-info ' role='progressbar' style='width: " + barLength + "%' >"+count+"</span>";
+        str += "</span>";
+        return str;
     }
 }
