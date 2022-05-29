@@ -8,6 +8,7 @@ import com.physmo.movietool.domain.Movie;
 import com.physmo.movietool.domain.MovieCollection;
 import com.physmo.movietool.domain.movieinfo.CollectionDetails;
 import com.physmo.movietool.domain.movieinfo.MovieInfo;
+import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -22,7 +23,7 @@ import java.util.Map;
 public class Reports {
     static final String BR = "<br>";
     static final String INFO = "&#x2139;";
-    static final String OWNED = "**OWNED**";
+    static final String OWNED = "<span class='badge rounded-pill bg-primary'>Owned</span>";
     private static final Logger log = LoggerFactory.getLogger(Reports.class);
     final Operations operations;
     final TMDBService tmdbService;
@@ -214,8 +215,7 @@ public class Reports {
 
             if (owned) {
                 ownedList.add(movie);
-            }
-            else {
+            } else {
                 needList.add(movie);
             }
         }
@@ -224,19 +224,27 @@ public class Reports {
         needList.sort(Comparator.comparing(Movie::getVote_average).reversed());
 
         for (Movie m : ownedList) {
-            str += BR + OWNED + " " + m.getTitle()+"  "+m.getVote_average();;
+            String title = sanitizeText(m.getTitle());
+            str += BR + title + "  " + m.getVote_average() + " " + OWNED;
         }
         str += BR;
         for (Movie m : needList) {
-            str += BR + addTooltipToText(m.getTitle()+" "+year, m.getOverview())+"  "+m.getVote_average();
+            String title = sanitizeText(m.getTitle());
+            String overview = sanitizeText(m.getOverview());
+            str += BR + addTooltipToText(title + " " + year, overview) + "  " + m.getVote_average();
         }
 
 
         return str;
     }
 
+    public String sanitizeText(String txt) {
+        txt = txt.replace("'", "");
+        return StringEscapeUtils.escapeHtml4(txt);
+    }
+
     public String addTooltipToText(String text, String tooltip) {
-        String str = text+" <span class='info' title='"+tooltip+"' class='visible'>"+INFO+"</span>";
+        String str = text + " <span class='badge text-bg-primary' data-bs-toggle='tooltip' data-bs-placement='right' title='" + tooltip + "' >info</span>";
         return str;
     }
 
@@ -245,8 +253,9 @@ public class Reports {
         log.info("Generating collections report");
 
         // Retrieve any collections we haven't yet received from TMDB.
-        operations.retrieveMovieCollections(dataStore);
-        operations.saveDataStore(dataStore);
+        // REMOVED: this should be done during scan
+        //operations.retrieveMovieCollections(dataStore);
+        //operations.saveDataStore(dataStore);
 
         List<CollectionReportCollection> collections = new ArrayList<>();
 
@@ -309,11 +318,61 @@ public class Reports {
 
         for (CollectionsReportMovie movie : collection.getMovies()) {
             if (movie.isOwned()) {
-                str += BR + OWNED + movie.getName() + " (" + movie.getDate() + ")";
+                str += BR + movie.getName() + " (" + movie.getDate() + ") " + OWNED;
             } else {
                 str += BR + movie.getName() + " (" + movie.getDate() + ")";
             }
         }
         return str;
+    }
+
+    public String countMoviesPerYear(DataStore dataStore) {
+        Map<Integer, Integer> yearCounts = new HashMap<>();
+
+        String str = "";
+
+        for (Integer movieId : dataStore.getMovieMap().keySet()) {
+            Movie movie = dataStore.getMovieMap().get(movieId);
+            int year = getYearFromReleaseDate(movie.getRelease_date());
+            if (year != -1) {
+                int count = 1;
+                if (yearCounts.get(year) != null) {
+                    count = yearCounts.get(year) + 1;
+                }
+                yearCounts.put(year, count);
+            }
+        }
+
+        int maxCount = 0;
+        for (Integer key : yearCounts.keySet()) {
+            if (yearCounts.get(key) > maxCount) {
+                maxCount = yearCounts.get(key);
+            }
+        }
+
+        String BAR = "==========================================================================";
+
+        for (Integer key : yearCounts.keySet()) {
+
+            int count = yearCounts.get(key);
+
+            String yearLink = makeLink(key.toString(), "findmissingpopularmovies/" + key);
+
+            str += BR + "" + yearLink + " ";
+            int barLength = (int) ((double) BAR.length() * ((double) count) / (double) maxCount);
+            if (barLength > BAR.length()) barLength = BAR.length();
+            str += BAR.substring(0, barLength) + "(" + count + ")";
+
+        }
+
+
+        return str;
+    }
+
+    public int getYearFromReleaseDate(String releaseDate) {
+        // e.g. "2004-04-13"
+        if (releaseDate == null || releaseDate.length() < 6) return -1;
+        int year = Integer.parseInt(releaseDate.substring(0, 4));
+        return year;
     }
 }
