@@ -6,6 +6,40 @@
           href="/webjars/bootstrap/5.1.3/css/bootstrap.min.css"/>
     <meta content="width=device-width, initial-scale=1" name="viewport">
     <style>
+        .column1 {
+            background: #3a3a3a;
+        }
+        .column2 {
+            background: #b6b6b6;
+        }
+
+        .list-group-mine .nav-link {
+            /*background-color: #f1f9fb;*/
+            padding: 3px;
+            border-left-color: #fff;
+            border-right-color: #fff;
+            color: #deae39;
+            border-radius: 0px;
+        }
+        .list-group-mine .nav-link:hover {
+            /*border-right: 3px solid #0091b5;*/
+            /*border-right-color: #fff;*/
+            color: #c8ecff;
+            padding-left: 6px;
+            /*background-color: red;*/
+        }
+
+        .actionbutton {
+            background: #a98b23;
+            border-color: black;
+            border-width: 2px;
+        }
+        .actionbutton:hover {
+            background: #8d773a;
+            border-color: #ffffff;
+            border-width: 2px;
+        }
+
     </style>
     <title>MovieTool</title>
 
@@ -14,36 +48,33 @@
 
 <div class="container-fluid h-100">
     <div class="row">
-        <div class="col-2 position-fixed  h-100 text-white bg-dark">
+        <div class="column1 col-2 position-fixed  h-100 text-white">
 
-            <h1>MovieTool</h1>
+            <h1 class="text-center align-middle">MovieTool</h1>
+
             <hr>
             <h6><span th:utext="${sidePanelInfo}"/></h6>
 
-
-
-            <ul class="nav nav-pills flex-column mb-auto">
+            <ul class="list-group-mine nav nav-pills flex-column mb-auto">
                 <span th:each="item :${sidePanelLinks}">
-                    <li class="nav-item">
-
-                    <a class="nav-link" th:href="${item.url}" th:utext="${item.text}">n</a>
-
+                    <li class="nav-item ">
+                        <a class="nav-link " th:href="${item.url}" th:utext="${item.text}">n</a>
                     </li>
                 </span>
             </ul>
             <br>
             <div class="d-grid gap-2">
-                <button onclick="callUrl('/action_scanmoviefolder')" class="btn btn-primary btn-sm" type="button">Scan Movie Folder
+                <button onclick="callUrl('/action_scanmoviefolder')" class="actionbutton btn btn-primary btn-sm" type="button">Scan Movie Folder
                 </button>
-                <button onclick="callUrl('/action_retrievemovieinfo')" class="btn btn-primary btn-sm" type="button">Retrieve Movie Info
+                <button onclick="callUrl('/action_retrievemovieinfo')" class="actionbutton btn btn-primary btn-sm" type="button">Retrieve Movie Info
                 </button>
-                <button onclick="callUrl('/testjob')" class="btn btn-primary btn-sm" type="button">Dummy Job</button>
+                <button onclick="callUrl('/testjob')" class="actionbutton btn btn-primary btn-sm" type="button">Dummy Job</button>
             </div>
             <div id="jobList">jl</div>
 
         </div> <!-- col -->
 
-        <div class="col-10 offset-2 h-100 min-vh-100">
+        <div class="column2 col-10 offset-2 h-100 min-vh-100">
             <div class="d-flex flex-column flex-shrink-0 p-3">
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
                     <h1 class="h2"><span th:utext="${title}"/></h1>

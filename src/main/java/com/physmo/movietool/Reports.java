@@ -244,7 +244,9 @@ public class Reports {
     }
 
     public String addTooltipToText(String text, String tooltip) {
-        String str = text + " <span  data-bs-toggle='tooltip' data-bs-placement='right' title='" + tooltip + "' ><span class='badge text-bg-primary'>info</span></span>";
+
+        String str = text + " <img src='/info.png' width='16' height='16' data-bs-toggle='tooltip' data-bs-placement='right' title='" + tooltip + "' >";
+        //String str = text + " <img src='/info.png' width='16' height='16'  >";
         return str;
     }
 
@@ -316,9 +318,11 @@ public class Reports {
             return date1.compareToIgnoreCase(date2);
         });
 
+        String tickImage = "<img src='tick.png'  width='16' height='16'>";
+
         for (CollectionsReportMovie movie : collection.getMovies()) {
             if (movie.isOwned()) {
-                str += BR + movie.getName() + " (" + movie.getDate() + ") " + OWNED;
+                str += BR + movie.getName() + " (" + movie.getDate() + ") " + tickImage;
             } else {
                 str += BR + movie.getName() + " (" + movie.getDate() + ")";
             }
