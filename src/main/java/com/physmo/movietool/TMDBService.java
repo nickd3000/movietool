@@ -91,10 +91,10 @@ public class TMDBService {
         int pageCount = 2;
 
         for (String sortBy : sortList) {
-            for (int page=1;page<=pageCount;page++) {
+            for (int page = 1; page <= pageCount; page++) {
                 RestTemplate restTemplate = new RestTemplate();
                 uriVariables.put("sort", sortBy);
-                uriVariables.put("page", ""+page);
+                uriVariables.put("page", "" + page);
                 SearchMovieResult searchMovieResult = restTemplate.getForObject(url, SearchMovieResult.class, uriVariables);
 
                 for (Movie movie : searchMovieResult.getResults()) {
