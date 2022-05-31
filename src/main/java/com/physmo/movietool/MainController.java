@@ -3,15 +3,16 @@ package com.physmo.movietool;
 import com.physmo.movietool.domain.DataStore;
 import com.physmo.movietool.domain.Link;
 import com.physmo.movietool.domain.PageComposer;
+import com.physmo.movietool.jobsystem.JOB_TYPE;
+import com.physmo.movietool.jobsystem.JobManager;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 @Controller
 public class MainController {
@@ -23,7 +24,9 @@ public class MainController {
     final TMDBService tmdbService;
     final PageComposer pageComposer;
 
-    public MainController(Config config, DataStore dataStore, TMDBService tmdbService, Operations operations, Reports reports, PageComposer pageComposer) {
+    final JobManager jobManager;
+
+    public MainController(Config config, DataStore dataStore, TMDBService tmdbService, Operations operations, Reports reports, PageComposer pageComposer, JobManager jobManager) {
         this.config = config;
         this.dataStore = dataStore;
         System.out.println("Controller: datastore size=" + dataStore.getFileListEntryList().size());
@@ -31,6 +34,7 @@ public class MainController {
         this.operations = operations;
         this.reports = reports;
         this.pageComposer = pageComposer;
+        this.jobManager = jobManager;
     }
 
     // TODO: get general info to display here
@@ -57,76 +61,15 @@ public class MainController {
 
     public List<Link> buildSidePanelLinks() {
         List<Link> links = new ArrayList<>();
-        links.add(new Link("Load Data Store", "/loaddatastore"));
-        links.add(new Link("Scan for file changes", "/scanForChanges"));
-        links.add(new Link("Retrieve Movie INFO From TMDB", "/retrievemovieinfo"));
-        links.add(new Link("Show File List", "/showfilelist"));
-        links.add(new Link("Show Unmatched File List", "/showunmatchedfilelist"));
-        links.add(new Link("Show Duplicates", "/showduplicates"));
-        links.add(new Link("Show Missing Dates", "/showmissingdates"));
-        links.add(new Link("Find missing popular movies", "/findmissingpopularmovies/1999"));
+        links.add(new Link("File List", "/showfilelist"));
+        links.add(new Link("Unmatched Files", "/showunmatchedfilelist"));
+        links.add(new Link("Duplicates", "/showduplicates"));
+        links.add(new Link("Missing Dates", "/showmissingdates"));
+        links.add(new Link("Missing popular movies", "/findmissingpopularmovies/1999"));
         links.add(new Link("Collections Report", "/collectionsreport"));
+        links.add(new Link("Movies Per Year", "/moviesperyear"));
+
         return links;
-    }
-
-    @GetMapping("/scanForChanges")
-    public String scanLocalFilesForChanges(Model model) {
-
-        Map<String, Set<String>> stringSetMap = operations.refreshFileList(dataStore, config.getMovieFolderPath());
-        operations.saveDataStore(dataStore);
-
-        String str = "";
-
-        str += BR + "Movie folder: " + config.getMovieFolderPath();
-        str += BR + pageComposer.scanLocalFilesForChanges(stringSetMap);
-
-        model.addAttribute("title", "Scan For file changes");
-        model.addAttribute("content", str);
-
-        attachSidePanelCommonData(model);
-
-        return "main";
-    }
-
-    @GetMapping("/retrievemovieinfo")
-    public String retrieveMovieInfo(Model model) {
-
-        operations.retrieveTMDBDataForFileList(dataStore, false);
-        List<String> output = operations.retrieveTMDBMovieInfo(dataStore);
-
-        operations.saveDataStore(dataStore);
-
-        String str = "";
-        if (output.size() == 0) {
-            str = "Everything up-to-date";
-        } else {
-            for (String s : output) {
-                str += BR + s;
-            }
-        }
-
-        model.addAttribute("title", "Retrieve Movie Info");
-        model.addAttribute("content", str);
-        attachSidePanelCommonData(model);
-
-        return "main";
-    }
-
-    // TODO get some info about what was loaded
-    @GetMapping("/loaddatastore")
-    public String loadDataStore(Model model) {
-
-        operations.loadDataStore(dataStore);
-
-        String str = "";
-        str += "Number of files: " + dataStore.getFileListEntryList().size();
-        str += BR + "Movie info count: " + dataStore.getMovieMap().keySet().size();
-
-        model.addAttribute("title", "Load Datastore");
-        model.addAttribute("content", str);
-        attachSidePanelCommonData(model);
-
-        return "main";
     }
 
     @GetMapping("/showfilelist")
@@ -213,4 +156,47 @@ public class MainController {
         return "main";
     }
 
+    @GetMapping("/moviesperyear")
+    public String countMoviesPerYear(Model model) {
+        String str = reports.countMoviesPerYear(dataStore);
+
+        model.addAttribute("title", "Movies Per Year");
+        model.addAttribute("content", str);
+        attachSidePanelCommonData(model);
+        return "main";
+    }
+
+    @ResponseBody
+    @GetMapping("/internalgetjobs")
+    public String getJobs() {
+        String str = jobManager.getJobsForDisplay();
+        return str;
+    }
+
+
+    // Test creating testjob from button
+    @ResponseBody
+    @GetMapping("/testjob")
+    public String testJob() {
+        jobManager.addJob(JOB_TYPE.dummyJob);
+        return "";
+    }
+
+    @ResponseBody
+    @GetMapping("/action_retrievemovieinfo")
+    public String actionRetrieveMovieInfo() {
+        jobManager.addJob(JOB_TYPE.retrieveMovieData);
+        jobManager.addJob(JOB_TYPE.retrieveMovieInfo);
+        jobManager.addJob(JOB_TYPE.retrieveCollectionsData);
+        return "";
+    }
+
+    // Test creating testjob from button
+    @ResponseBody
+    @GetMapping("/action_scanmoviefolder")
+    public String actionScanMovieFolder() {
+        jobManager.addJob(JOB_TYPE.removeMissingFiles);
+        jobManager.addJob(JOB_TYPE.scanMovieFolder);
+        return "";
+    }
 }
