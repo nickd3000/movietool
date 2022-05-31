@@ -4,6 +4,7 @@ import com.physmo.movietool.domain.DataStore;
 import com.physmo.movietool.domain.FileListEntry;
 import com.physmo.movietool.domain.Movie;
 import com.physmo.movietool.domain.movieinfo.MovieInfo;
+import com.physmo.movietool.jobsystem.Job;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -12,10 +13,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 @Component
@@ -28,29 +27,123 @@ public class Operations {
     final TMDBService tmdbService;
     final FileNameOperations fileNameOperations;
 
-    public Operations(Config config, DiskOperations diskOperations, TMDBService tmdbService, FileNameOperations fileNameOperations) {
+    final DataStore dataStore;
+
+    public Operations(Config config, DiskOperations diskOperations, TMDBService tmdbService, FileNameOperations fileNameOperations, DataStore dataStore) {
         this.config = config;
         this.diskOperations = diskOperations;
         this.tmdbService = tmdbService;
         this.fileNameOperations = fileNameOperations;
+        this.dataStore = dataStore;
     }
 
-    // check for known files that no longer exist
-    // find new files
-    public Map<String, Set<String>> refreshFileList(DataStore dataStore, String filePath) {
-        log.info("Refreshing file list - checking for new and changed files");
-        Set<String> removedFileSet = removeMissingFiles(dataStore, filePath);
-        Set<String> newFileSet = retrieveFileList(dataStore, filePath);
-        Map<String, Set<String>> changedFiles = new HashMap<>();
-        changedFiles.put("removedFileSet", removedFileSet);
-        changedFiles.put("newFileSet", newFileSet);
-        log.info("DONE");
-        return changedFiles;
+    public void loadDataStore(DataStore dataStore) {
+
+        String path = config.getDataFilePath() + File.separatorChar + config.getDataFileName();
+
+        //DataStore dataStore;
+
+        try {
+            diskOperations.loadDataStore(path, dataStore);
+            //System.out.println("Loaded data store");
+        } catch (FileNotFoundException e) {
+            //System.out.println("Data store not found, creating new.");
+            dataStore = new DataStore();
+            saveDataStore(dataStore);
+        }
+
+
+        //return dataStore;
     }
 
-    public Set<String> retrieveFileList(DataStore dataStore, String filePath) {
+    public void saveDataStore(DataStore dataStore) {
+        String path = config.getDataFilePath() + File.separatorChar + config.getDataFileName();
 
-        log.info("Movie folder: "+filePath);
+        try {
+            diskOperations.saveDataStore(path, dataStore);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    // Return list of movie collections that we have at least one movie in.
+//    public void retrieveMovieCollections(DataStore dataStore) {
+//        Set<Integer> collectionSet = new HashSet<>();
+//        log.info("Retrieving movie collection data from MDB");
+//
+//        // Get list of movie collection IDs.
+//        for (FileListEntry fileListEntry : dataStore.getFileListEntryList()) {
+//            if (fileListEntry.getId() == 0) continue; // ID of 0 means we haven't found this movie.
+//
+//            MovieInfo movieInfo = dataStore.getMovieInfo().get(fileListEntry.getId());
+//
+//            if (movieInfo == null) continue;
+//            if (movieInfo.getBelongs_to_collection() == null) continue;
+//
+//            Integer collectionId = movieInfo.getBelongs_to_collection().getId();
+//            collectionSet.add(collectionId);
+//        }
+//
+//        // Retrieve any we haven't stored already.
+//        for (Integer collectionId : collectionSet) {
+//            if (dataStore.getMovieCollectionMap().containsKey(collectionId)) continue;
+//            dataStore.getMovieCollectionMap().put(collectionId, tmdbService.getMovieCollection(collectionId));
+//
+//        }
+//        log.info("DONE");
+//    }
+
+    public void startDummyJob(Job job) {
+        System.out.println("startDummyJob");
+        int numIterations = 20;
+        job.setMaxProgress(numIterations);
+        for (int i = 0; i < numIterations; i++) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            job.setCurrentProgress(i);
+        }
+        job.setComplete(true);
+    }
+
+    public void startJobRemoveMissingFiles(Job job) {
+        job.setMaxProgress(100);
+        job.setCurrentProgress(50);
+        Set<String> removedFileSet = removeMissingFiles(dataStore, config.getMovieFolderPath());
+        job.setComplete(true);
+    }
+
+    // Check each file in the file list, if it no longer exists remove it from the list.
+    public Set<String> removeMissingFiles(DataStore dataStore, String filePath) {
+        Set<String> removedFilesSet = new HashSet<>();
+
+        List<FileListEntry> removeList = new ArrayList<>();
+        for (FileListEntry fileListEntry : dataStore.getFileListEntryList()) {
+            String fileName = fileListEntry.getFileName();
+            File f = new File(filePath + File.separator + fileName);
+            if (!f.isFile()) {
+                removeList.add(fileListEntry);
+                removedFilesSet.add(fileName);
+            }
+        }
+        log.info("Removing " + removeList.size() + " file entries");
+        dataStore.getFileListEntryList().removeAll(removeList);
+
+        return removedFilesSet;
+    }
+
+    public void startJobScanMovieFolder(Job job) {
+        job.setMaxProgress(100);
+        job.setCurrentProgress(50);
+        Set<String> newFileSet = scanMovieFolder(dataStore, config.getMovieFolderPath());
+        job.setComplete(true);
+    }
+
+    public Set<String> scanMovieFolder(DataStore dataStore, String filePath) {
+
+        log.info("Movie folder: " + filePath);
 
         Set<String> newFilesSet = new HashSet<>();
         File[] allFilesInDirectory = diskOperations.getAllFilesInDirectory(filePath);
@@ -84,33 +177,21 @@ public class Operations {
         return false;
     }
 
-    // Check each file in the file list, if it no longer exists remove it from the list.
-    public Set<String> removeMissingFiles(DataStore dataStore, String filePath) {
-        Set<String> removedFilesSet = new HashSet<>();
-
-        List<FileListEntry> removeList = new ArrayList<>();
-        for (FileListEntry fileListEntry : dataStore.getFileListEntryList()) {
-            String fileName = fileListEntry.getFileName();
-            File f = new File(filePath + File.separator + fileName);
-            if (!f.isFile()) {
-                removeList.add(fileListEntry);
-                removedFilesSet.add(fileName);
-            }
-        }
-        log.info("Removing " + removeList.size() + " file entries");
-        dataStore.getFileListEntryList().removeAll(removeList);
-
-        return removedFilesSet;
-    }
-
-    public void retrieveTMDBDataForFileList(DataStore dataStore, boolean override) {
+    public void startJobRetrieveMovieData(Job job) {
 
         int count = 0;
+        int retrievalCount = 0;
 
         List<FileListEntry> fileListEntryList = dataStore.getFileListEntryList();
-        for (FileListEntry fileListEntry : fileListEntryList) {
-            if (fileListEntry.getId() != 0 && !override) continue;
+        job.setMaxProgress(fileListEntryList.size());
 
+        for (FileListEntry fileListEntry : fileListEntryList) {
+            count++;
+            job.setCurrentProgress(count);
+
+            if (fileListEntry.getId() != 0) continue;
+
+            retrievalCount++;
             Movie movie = tmdbService.retrieveTMDBDataForFile(fileListEntry.getNamePart(), fileListEntry.getDatePart());
             if (movie == null) {
                 log.info("Movie not found on TMDB:" + fileListEntry.getNamePart());
@@ -122,25 +203,30 @@ public class Operations {
             dataStore.getMovieMap().put(movieId, movie);
             fileListEntry.setId(movieId);
 
-            count++;
-            int MAX_RETRIEVALS_PER_RUN = 1000;
-            if (count > MAX_RETRIEVALS_PER_RUN) break;
+            if (retrievalCount % 10 == 0)
+                saveDataStore(dataStore);
         }
-
+        saveDataStore(dataStore);
+        job.setComplete(true);
     }
 
-    public List<String> retrieveTMDBMovieInfo(DataStore dataStore) {
+    public void startJobRetrieveMovieInfo(Job job) {
 
         int count = 0;
+        int retrievalCount = 0;
         List<String> output = new ArrayList<>();
 
+        job.setMaxProgress(dataStore.getMovieMap().keySet().size());
+
         for (Integer movieId : dataStore.getMovieMap().keySet()) {
+            count++;
+            job.setCurrentProgress(count);
             if (dataStore.getMovieInfo().containsKey(movieId)) continue;
 
             String name = dataStore.getMovieMap().get(movieId).getTitle();
 
             MovieInfo movieInfo = tmdbService.getMovieInfo(movieId);
-
+            retrievalCount++;
             if (movieInfo == null) {
                 output.add("Movie Info not found for id " + movieId + ", " + name);
                 continue;
@@ -150,48 +236,24 @@ public class Operations {
 
             dataStore.getMovieInfo().put(movieId, movieInfo);
 
-            count++;
-            if (count > 1000) break;
-        }
-        return output;
-    }
-
-    public void loadDataStore(DataStore dataStore) {
-
-        String path = config.getDataFilePath()+File.separatorChar+config.getDataFileName();
-
-        //DataStore dataStore;
-
-        try {
-            diskOperations.loadDataStore(path, dataStore);
-            //System.out.println("Loaded data store");
-        } catch (FileNotFoundException e) {
-            //System.out.println("Data store not found, creating new.");
-            dataStore = new DataStore();
-            saveDataStore(dataStore);
+            if (retrievalCount % 10 == 0)
+                saveDataStore(dataStore);
         }
 
-
-        //return dataStore;
+        saveDataStore(dataStore);
+        job.setComplete(true);
     }
 
-    public void saveDataStore(DataStore dataStore) {
-        String path = config.getDataFilePath()+File.separatorChar+config.getDataFileName();
+    public void startJobRetrieveCollectionData(Job job) {
 
-        try {
-            diskOperations.saveDataStore(path, dataStore);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    // Return list of movie collections that we have at least one movie in.
-    public void retrieveMovieCollections(DataStore dataStore) {
         Set<Integer> collectionSet = new HashSet<>();
         log.info("Retrieving movie collection data from MDB");
 
+        int count = 0;
+
         // Get list of movie collection IDs.
         for (FileListEntry fileListEntry : dataStore.getFileListEntryList()) {
+
             if (fileListEntry.getId() == 0) continue; // ID of 0 means we haven't found this movie.
 
             MovieInfo movieInfo = dataStore.getMovieInfo().get(fileListEntry.getId());
@@ -203,12 +265,20 @@ public class Operations {
             collectionSet.add(collectionId);
         }
 
+        job.setMaxProgress(collectionSet.size());
+
         // Retrieve any we haven't stored already.
         for (Integer collectionId : collectionSet) {
+            count++;
+            job.setCurrentProgress(count);
             if (dataStore.getMovieCollectionMap().containsKey(collectionId)) continue;
             dataStore.getMovieCollectionMap().put(collectionId, tmdbService.getMovieCollection(collectionId));
-
+            if (count % 10 == 0)
+                saveDataStore(dataStore);
         }
         log.info("DONE");
+
+        saveDataStore(dataStore);
+        job.setComplete(true);
     }
 }
