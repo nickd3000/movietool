@@ -106,6 +106,7 @@ public class Operations {
             job.setCurrentProgress(i);
         }
         job.setComplete(true);
+        job.setResultText("Completed dummy job");
     }
 
     public void startJobRemoveMissingFiles(Job job) {
@@ -113,6 +114,7 @@ public class Operations {
         job.setCurrentProgress(50);
         Set<String> removedFileSet = removeMissingFiles(dataStore, config.getMovieFolderPath());
         job.setComplete(true);
+        job.setResultText("Removed "+removedFileSet.size()+" missing files");
     }
 
     // Check each file in the file list, if it no longer exists remove it from the list.
@@ -139,6 +141,7 @@ public class Operations {
         job.setCurrentProgress(50);
         Set<String> newFileSet = scanMovieFolder(dataStore, config.getMovieFolderPath());
         job.setComplete(true);
+        job.setResultText("Discovered "+newFileSet.size()+" new files");
     }
 
     public Set<String> scanMovieFolder(DataStore dataStore, String filePath) {
@@ -157,7 +160,6 @@ public class Operations {
             fileListEntry.setNamePart(parts[0]);
             fileListEntry.setDatePart(parts[1]);
             fileListEntry.setExtensionPart(parts[2]);
-
 
             dataStore.getFileListEntryList().add(fileListEntry);
             newFilesSet.add(file.getName());
@@ -191,12 +193,13 @@ public class Operations {
 
             if (fileListEntry.getId() != 0) continue;
 
-            retrievalCount++;
+
             Movie movie = tmdbService.retrieveTMDBDataForFile(fileListEntry.getNamePart(), fileListEntry.getDatePart());
             if (movie == null) {
                 log.info("Movie not found on TMDB:" + fileListEntry.getNamePart());
                 continue;
             }
+            retrievalCount++;
             log.info("Found :" + fileListEntry.getNamePart() + " as " + movie.getTitle());
 
             int movieId = movie.getId();
@@ -208,6 +211,7 @@ public class Operations {
         }
         saveDataStore(dataStore);
         job.setComplete(true);
+        job.setResultText("Retrieved "+retrievalCount+" movie data");
     }
 
     public void startJobRetrieveMovieInfo(Job job) {
@@ -226,14 +230,14 @@ public class Operations {
             String name = dataStore.getMovieMap().get(movieId).getTitle();
 
             MovieInfo movieInfo = tmdbService.getMovieInfo(movieId);
-            retrievalCount++;
+
             if (movieInfo == null) {
                 output.add("Movie Info not found for id " + movieId + ", " + name);
                 continue;
             } else {
                 output.add("Found Movie Info for id " + movieId + ", " + name);
             }
-
+            retrievalCount++;
             dataStore.getMovieInfo().put(movieId, movieInfo);
 
             if (retrievalCount % 10 == 0)
@@ -242,6 +246,7 @@ public class Operations {
 
         saveDataStore(dataStore);
         job.setComplete(true);
+        job.setResultText("Retrieved "+retrievalCount+" movie info");
     }
 
     public void startJobRetrieveCollectionData(Job job) {
@@ -269,9 +274,10 @@ public class Operations {
 
         // Retrieve any we haven't stored already.
         for (Integer collectionId : collectionSet) {
-            count++;
+
             job.setCurrentProgress(count);
             if (dataStore.getMovieCollectionMap().containsKey(collectionId)) continue;
+            count++;
             dataStore.getMovieCollectionMap().put(collectionId, tmdbService.getMovieCollection(collectionId));
             if (count % 10 == 0)
                 saveDataStore(dataStore);
@@ -280,5 +286,6 @@ public class Operations {
 
         saveDataStore(dataStore);
         job.setComplete(true);
+        job.setResultText("Retrieved "+count+" collection data");
     }
 }

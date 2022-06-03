@@ -64,7 +64,8 @@ public class DiskOperations {
         dataStore.setMovieCollectionMap(deserializedDataStore.getMovieCollectionMap());
         dataStore.setMovieInfo(deserializedDataStore.getMovieInfo());
         dataStore.setMovieMap(deserializedDataStore.getMovieMap());
-
+        dataStore.setGenres(deserializedDataStore.getGenres());
+        dataStore.setGenreMap(deserializedDataStore.getGenreMap());
     }
 
 
