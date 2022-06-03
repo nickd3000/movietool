@@ -7,6 +7,16 @@ public class Job {
     private int id;
     private JOB_TYPE jobType;
 
+    public String getResultText() {
+        return resultText;
+    }
+
+    public void setResultText(String resultText) {
+        this.resultText = resultText;
+    }
+
+    private String resultText;
+
     public boolean isComplete() {
         return complete;
     }
