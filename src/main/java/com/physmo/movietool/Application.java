@@ -1,6 +1,7 @@
 package com.physmo.movietool;
 
 import com.physmo.movietool.domain.DataStore;
+import com.physmo.movietool.domain.Genres;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -18,9 +19,12 @@ public class Application {
     final DataStore dataStore;
     final Operations operations;
 
-    public Application(DataStore dataStore, Operations operations) {
+    final TMDBService tmdbService;
+
+    public Application(DataStore dataStore, Operations operations,TMDBService tmdbService) {
         this.dataStore = dataStore;
         this.operations = operations;
+        this.tmdbService = tmdbService;
     }
 
     public static void main(String[] args) {
@@ -36,6 +40,7 @@ public class Application {
     public CommandLineRunner run(RestTemplate restTemplate) {
         return args -> {
             operations.loadDataStore(dataStore);
+
         };
     }
 

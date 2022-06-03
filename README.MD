@@ -1,8 +1,8 @@
 # MovieTool
 
-![Image example page](docs/image/movietool_popular.png)
+![Image example page](docs/image/movietool_missingpopular.png)
 
-A Java based application for scanning movie file collections.
+A Java based application for scanning movie file collections, showing missing movies from collections, and recommending top movies per year.
 A [TMDB API key](https://developers.themoviedb.org/3/getting-started/introduction) is required to use this.
 
 When running, access using a web browser at [http://localhost:2001](http://localhost:2001)
@@ -31,3 +31,9 @@ MOVIETOOL_DATAFILEPATH - Set this to where you want the data cache to live
 MOVIETOOL_MOVIEFOLDERPATH - Set this to the location of your movie files
 MOVIETOOL_ALLOWEDFILETYPES - List of allowed movie file types
 MOVIETOOL_TMDBAPIKEY - Your own personal TMDB API key
+
+Alternatively, these parameters can be overridden on the command line.
+
+![Image example page](docs/image/movietool_collections.png)
+![Image example page](docs/image/movietool_moviesperyear.png)
+

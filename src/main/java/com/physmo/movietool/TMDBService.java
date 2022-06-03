@@ -1,5 +1,6 @@
 package com.physmo.movietool;
 
+import com.physmo.movietool.domain.Genres;
 import com.physmo.movietool.domain.Movie;
 import com.physmo.movietool.domain.MovieCollection;
 import com.physmo.movietool.domain.SearchMovieResult;
@@ -116,5 +117,16 @@ public class TMDBService {
 
         RestTemplate restTemplate = new RestTemplate();
         return restTemplate.getForObject(url, MovieCollection.class, uriVariables);
+    }
+
+    //https://api.themoviedb.org/3/genre/movie/list?api_key=<<api_key>>&language=en-US
+    public  Genres getGenres() {
+        String url = "https://api.themoviedb.org/3/genre/movie/list?api_key={api_key}&language={language}";
+        Map<String, Object> uriVariables = new HashMap<>();
+        uriVariables.put("api_key", config.getTmdbApiKey());
+        uriVariables.put("language", "en-US");
+
+        RestTemplate restTemplate = new RestTemplate();
+        return restTemplate.getForObject(url, Genres.class, uriVariables);
     }
 }
