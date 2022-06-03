@@ -1,6 +1,7 @@
 package com.physmo.movietool;
 
 import com.physmo.movietool.domain.DataStore;
+import com.physmo.movietool.domain.Genres;
 import com.physmo.movietool.domain.Link;
 import com.physmo.movietool.domain.PageComposer;
 import com.physmo.movietool.jobsystem.JOB_TYPE;
@@ -41,7 +42,7 @@ public class MainController {
     @GetMapping("/")
     public String index(Model model) {
 
-        String summary = reports.getLibrarySummary(dataStore);
+        String summary = reports.getLibrarySummary();
 
         model.addAttribute("title", "Main");
         model.addAttribute("content", summary);
@@ -74,7 +75,7 @@ public class MainController {
 
     @GetMapping("/showfilelist")
     public String showFileList(Model model) {
-        String fileListAsTable = reports.getFileList(dataStore);
+        String fileListAsTable = reports.getFileList();
 
         model.addAttribute("title", "File List");
         model.addAttribute("content", fileListAsTable);
@@ -85,7 +86,7 @@ public class MainController {
 
     @GetMapping("/showunmatchedfilelist")
     public String showUnmatchedFileList(Model model) {
-        String fileListAsTable = reports.getUnmatchedFileList(dataStore);
+        String fileListAsTable = reports.getUnmatchedFileList();
 
 
         model.addAttribute("title", "Unmatched files");
@@ -96,7 +97,7 @@ public class MainController {
 
     @GetMapping("/showduplicates")
     public String showDuplicates(Model model) {
-        String fileListAsTable = reports.findDuplicates(dataStore);
+        String fileListAsTable = reports.findDuplicates();
 
         model.addAttribute("title", "Duplicated files");
         model.addAttribute("content", fileListAsTable);
@@ -106,7 +107,7 @@ public class MainController {
 
     @GetMapping("/showmissingdates")
     public String showMissingDates(Model model) {
-        String str = reports.getMoviesWithNoDate(dataStore);
+        String str = reports.getMoviesWithNoDate();
 
         model.addAttribute("title", "Files with missing dates");
         model.addAttribute("content", str);
@@ -124,7 +125,7 @@ public class MainController {
 
         str += prev + " " + next;
 
-        str += BR + reports.findMissingPopularMoviesForYear(dataStore, Integer.parseInt(year));
+        str += BR + reports.findMissingPopularMoviesForYear(Integer.parseInt(year));
 
         model.addAttribute("title", "Missing popular movies for " + year);
         model.addAttribute("content", str);
@@ -138,7 +139,7 @@ public class MainController {
 
     @GetMapping("/collectionsreport")
     public String getCollectionsReport(Model model) {
-        String str = reports.getCollectionsReport(dataStore);
+        String str = reports.getCollectionsReport();
 
         model.addAttribute("title", "Collections Report");
         model.addAttribute("content", str);
@@ -148,7 +149,7 @@ public class MainController {
 
     @GetMapping("/movieinfo/{movieId}")
     public String getMovieInfo(Model model, @PathVariable String movieId) {
-        String str = reports.getMovieInfo(dataStore, Integer.parseInt(movieId));
+        String str = reports.getMovieInfo(Integer.parseInt(movieId));
 
         model.addAttribute("title", "Movie Details");
         model.addAttribute("content", str);
@@ -158,7 +159,7 @@ public class MainController {
 
     @GetMapping("/moviesperyear")
     public String countMoviesPerYear(Model model) {
-        String str = reports.countMoviesPerYear(dataStore);
+        String str = reports.countMoviesPerYear();
 
         model.addAttribute("title", "Movies Per Year");
         model.addAttribute("content", str);
@@ -185,9 +186,16 @@ public class MainController {
     @ResponseBody
     @GetMapping("/action_retrievemovieinfo")
     public String actionRetrieveMovieInfo() {
+        Genres genres = tmdbService.getGenres();
+        System.out.println("LOADED GENRES "+genres.getGenres().length);
+        dataStore.setGenres(genres);
+        operations.saveDataStore(dataStore);
+
         jobManager.addJob(JOB_TYPE.retrieveMovieData);
         jobManager.addJob(JOB_TYPE.retrieveMovieInfo);
         jobManager.addJob(JOB_TYPE.retrieveCollectionsData);
+
+
         return "";
     }
 

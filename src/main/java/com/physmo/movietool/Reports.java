@@ -22,25 +22,27 @@ import java.util.Map;
 @Component
 public class Reports {
     static final String BR = "<br>";
-    static final String INFO = "&#x2139;";
-    static final String OWNED = "<span class='badge rounded-pill bg-primary'>Owned</span>";
+
     private static final Logger log = LoggerFactory.getLogger(Reports.class);
     final Operations operations;
     final TMDBService tmdbService;
 
+    final DataStore dataStore;
+
     final Config config;
 
-    public Reports(Config config, Operations operations, TMDBService tmdbService) {
+    public Reports(Config config, Operations operations, TMDBService tmdbService, DataStore dataStore) {
         this.operations = operations;
         this.tmdbService = tmdbService;
         this.config = config;
+        this.dataStore = dataStore;
     }
 
     public String getLocalList() {
         return "";
     }
 
-    public String getMoviesWithNoDate(DataStore dataStore) {
+    public String getMoviesWithNoDate() {
         String ret = "";
         for (FileListEntry fileListEntry : dataStore.getFileListEntryList()) {
             if (fileListEntry.getDatePart() == null || fileListEntry.getDatePart().equals("")) {
@@ -51,7 +53,7 @@ public class Reports {
         return ret;
     }
 
-    public String getMovieInfo(DataStore dataStore, int movieId) {
+    public String getMovieInfo(int movieId) {
         MovieInfo movieInfo = dataStore.getMovieInfo().get(movieId);
         if (movieInfo == null) {
             return "movie not found";
@@ -78,7 +80,7 @@ public class Reports {
         return "<tr><td>" + str1 + "</td><td>" + str2 + "</td></tr>";
     }
 
-    public String getLibrarySummary(DataStore dataStore) {
+    public String getLibrarySummary() {
         String ret = "";
         int numLocalFiles = dataStore.getFileListEntryList().size();
         ret += BR + "Local files: " + numLocalFiles;
@@ -98,7 +100,7 @@ public class Reports {
         return ret;
     }
 
-    public String getFileList(DataStore dataStore) {
+    public String getFileList() {
         String output = "";
 
         boolean includeCollection = true;
@@ -121,7 +123,7 @@ public class Reports {
             }
 
             if (includeCollection) {
-                output += "<td>" + getCollectionNameForMovieId(dataStore, fileListEntry.getId()) + "</td>";
+                output += "<td>" + getCollectionNameForMovieId(fileListEntry.getId()) + "</td>";
             }
 
             output += "</tr>";
@@ -131,7 +133,7 @@ public class Reports {
         return output;
     }
 
-    public String getCollectionNameForMovieId(DataStore dataStore, int movieId) {
+    public String getCollectionNameForMovieId(int movieId) {
         if (movieId == 0) return "";
 
         MovieInfo movieInfo = dataStore.getMovieInfo().get(movieId);
@@ -147,7 +149,7 @@ public class Reports {
         return "<a href='" + link + "'>" + text + "</a>";
     }
 
-    public String getUnmatchedFileList(DataStore dataStore) {
+    public String getUnmatchedFileList() {
         String str = "";
         String table = "";
 
@@ -168,7 +170,7 @@ public class Reports {
         return str + BR + table;
     }
 
-    public String findDuplicates(DataStore dataStore) {
+    public String findDuplicates() {
         Map<Integer, Integer> counts = new HashMap<>();
         String str = "";
         for (FileListEntry file : dataStore.getFileListEntryList()) {
@@ -196,7 +198,7 @@ public class Reports {
 
     }
 
-    public String findMissingPopularMoviesForYear(DataStore dataStore, int year) {
+    public String findMissingPopularMoviesForYear(int year) {
 
         Map<Integer, Movie> popularMoviesByYear = tmdbService.getPopularMoviesByYear(year);
         String str = "";
@@ -224,18 +226,33 @@ public class Reports {
         needList.sort(Comparator.comparing(Movie::getVote_average).reversed());
 
         for (Movie m : ownedList) {
-            String title = sanitizeText(m.getTitle());
-            str += BR + title + "  " + m.getVote_average() + " " + OWNED;
+            String rating = m.getVote_average().toString();
+            String fullMovieString = createMovieDetailsRow(
+                    m.getId(), m.getTitle(), "" + year, true, rating, null, null);
+            str += fullMovieString;
         }
         str += BR;
         for (Movie m : needList) {
-            String title = sanitizeText(m.getTitle());
+
             String overview = sanitizeText(m.getOverview());
-            str += BR + addTooltipToText(title + " " + year, overview) + "  " + m.getVote_average();
+            String rating = m.getVote_average().toString();
+            String fullMovieString = createMovieDetailsRow(
+                    m.getId(), m.getTitle(), "" + year, false, rating, getGenres(m), overview);
+            str += fullMovieString;
         }
 
 
         return str;
+    }
+
+    public String getGenres(Movie movie) {
+        String str = "";
+        Map<Integer, String> genreMap = dataStore.getGenreMap();
+        for (Integer genre_id : movie.getGenre_ids()) {
+            String genreString = genreMap.getOrDefault(genre_id, "unknown");
+            str += genreString + " ";
+        }
+        return "<span class='text-genres'>" + str + "</span>";
     }
 
     public String sanitizeText(String txt) {
@@ -243,21 +260,49 @@ public class Reports {
         return StringEscapeUtils.escapeHtml4(txt);
     }
 
-    public String addTooltipToText(String text, String tooltip) {
+    // for use by missing popular and collections report
+    // name
+    // year - no brackets, colored, link to year page
+    // info icon
+    // owned icon
+    // rating (optional)
+    // genre - colored
+    // [missing popular] Magnolia 1999 (i) 7.7 Drama
+    // [collections report] Star Wars (1977) (tick)
+    // [collections report] The Hangover Part II (2011)
+    public String createMovieDetailsRow(int movieId, String name, String date, Boolean owned, String rating, String genres, String info) {
 
-        String str = text + " <img src='/info.png' width='16' height='16' data-bs-toggle='tooltip' data-bs-placement='right' title='" + tooltip + "' >";
+        String str = "";
+
+        String TICK_IMAGE = "<img src='/tick.png' width='16' height='16'>";
+
+        String namePart = name;
+
+
+        // Build it
+        str += BR + name + " ";
+        if (date != null) str += " <span class='text-year'>" + date + "</span>";
+        if (info != null) {
+            str += " " + createTooltipIcon(info);
+        }
+        if (owned) str += " " + TICK_IMAGE;
+        if (rating != null) str += " <span class='text-rating'>" + rating + "</span>";
+        if (genres != null) str += " <span class='text-genres'>" + genres + "</span>";
+
+
+        return str;
+    }
+
+    public String createTooltipIcon(String tooltip) {
+
+        String str = " <img src='/info.png' width='16' height='16' data-bs-toggle='tooltip' data-bs-placement='right' title='" + tooltip + "' >";
         //String str = text + " <img src='/info.png' width='16' height='16'  >";
         return str;
     }
 
-    public String getCollectionsReport(DataStore dataStore) {
+    public String getCollectionsReport() {
         String str = "";
         log.info("Generating collections report");
-
-        // Retrieve any collections we haven't yet received from TMDB.
-        // REMOVED: this should be done during scan
-        //operations.retrieveMovieCollections(dataStore);
-        //operations.saveDataStore(dataStore);
 
         List<CollectionReportCollection> collections = new ArrayList<>();
 
@@ -276,8 +321,6 @@ public class Reports {
 
                 CollectionsReportMovie newMovie = new CollectionsReportMovie();
                 newMovie.set(movie.getTitle(), movie.getRelease_date(), owned, movie.getId());
-
-                //String linkedTitle = makeLink(title, "/movieinfo/" + movie.getId());
 
                 newCollection.getMovies().add(newMovie);
 
@@ -318,19 +361,27 @@ public class Reports {
             return date1.compareToIgnoreCase(date2);
         });
 
-        String tickImage = "<img src='tick.png'  width='16' height='16'>";
-
         for (CollectionsReportMovie movie : collection.getMovies()) {
-            if (movie.isOwned()) {
-                str += BR + movie.getName() + " (" + movie.getDate() + ") " + tickImage;
-            } else {
-                str += BR + movie.getName() + " (" + movie.getDate() + ")";
-            }
+
+            int iYear = getYearFromReleaseDate(movie.getDate());
+            String year = iYear == -1 ? "unreleased" : "" + iYear;
+
+
+            String fullMovieString = createMovieDetailsRow(
+                    movie.getId(), movie.getName(), year, movie.isOwned(), null, null, null);
+            str += fullMovieString;
         }
         return str;
     }
 
-    public String countMoviesPerYear(DataStore dataStore) {
+    public int getYearFromReleaseDate(String releaseDate) {
+        // e.g. "2004-04-13"
+        if (releaseDate == null || releaseDate.length() < 6) return -1;
+        int year = Integer.parseInt(releaseDate.substring(0, 4));
+        return year;
+    }
+
+    public String countMoviesPerYear() {
         Map<Integer, Integer> yearCounts = new HashMap<>();
 
         String str = "";
@@ -366,20 +417,13 @@ public class Reports {
             str += "" + yearLink + " ";
             str += "</div>";
             str += "<div class='col-md-10'>";
-            str+=createHtmlBar(count,maxCount);
+            str += createHtmlBar(count, maxCount);
             str += "</div>";
             str += "</div>";
         }
 
 
         return str;
-    }
-
-    public int getYearFromReleaseDate(String releaseDate) {
-        // e.g. "2004-04-13"
-        if (releaseDate == null || releaseDate.length() < 6) return -1;
-        int year = Integer.parseInt(releaseDate.substring(0, 4));
-        return year;
     }
 
     public String createHtmlBar(int count, int maxCount) {
@@ -389,8 +433,10 @@ public class Reports {
         if (barLength > 100) barLength = 100;
 
         String str = "<span class='progress  w-80'>";
-        str += "<span class='progress-bar bg-info ' role='progressbar' style='width: " + barLength + "%' >"+count+"</span>";
+        str += "<span class='progress-bar bg-info ' role='progressbar' style='width: " + barLength + "%' >" + count + "</span>";
         str += "</span>";
         return str;
     }
+// https://code-with-me.global.jetbrains.com/KgRAXOZxmPWJPCIGCTQ9Mg#p=IU&fp=AF0023834A562EB8395991BAFEEC6073DE61211DA31B169C205AE37781D1BCC6
+
 }
