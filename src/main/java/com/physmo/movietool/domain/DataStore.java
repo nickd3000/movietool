@@ -17,6 +17,30 @@ public class DataStore implements Serializable {
     Map<Integer, Movie> movieMap = new HashMap<>();
     Map<Integer, MovieInfo> movieInfo = new HashMap<>();
     Map<Integer, MovieCollection> movieCollectionMap = new HashMap<>();
+    Genres genres = new Genres();
+    Map<Integer, String> genreMap = new HashMap<>();
+
+    public Map<Integer, String> getGenreMap() {
+        return genreMap;
+    }
+
+    public void setGenreMap(Map<Integer, String> genreMap) {
+        this.genreMap = genreMap;
+    }
+
+    public Genres getGenres() {
+        return genres;
+    }
+
+    public void setGenres(Genres genres) {
+        this.genres = genres;
+        genreMap.clear();
+        // create map
+        for (Genre genre : genres.getGenres()) {
+            genreMap.put(genre.getId(), genre.getName());
+        }
+
+    }
 
     public Map<Integer, MovieCollection> getMovieCollectionMap() {
         return movieCollectionMap;
