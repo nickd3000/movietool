@@ -2,19 +2,21 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
 
-    <link rel="stylesheet"
-          href="/webjars/bootstrap/5.1.3/css/bootstrap.min.css"/>
+    <link href="/webjars/bootstrap/5.1.3/css/bootstrap.min.css"
+          rel="stylesheet"/>
     <meta content="width=device-width, initial-scale=1" name="viewport">
     <style>
-        .appname  {
+        .appname {
             color: #0e1b33;
             text-align: center;
             vertical-align: +10px;
             font-size: 3.2em;
         }
+
         .column1 {
             background: #e1e1e1;
         }
+
         .column2 {
             background: #ffffff;
         }
@@ -27,6 +29,7 @@
             color: #0e1b33;
             border-radius: 0px;
         }
+
         .list-group-mine .nav-link:hover {
             /*border-right: 3px solid #0091b5;*/
             /*border-right-color: #fff;*/
@@ -40,21 +43,45 @@
             border-color: #27689a;
             border-width: 2px;
         }
+
         .actionbutton:hover {
             background: #6aaadc;
             border-color: #27689a;
             border-width: 2px;
         }
 
-        .tooltip-inner { background-color: #b6b097; color: #33312e; }
-        .tooltip.top .tooltip-arrow { border-top-color: #b6b097; }
-        .tooltip.right .tooltip-arrow { border-right-color: #b6b097; }
-        .tooltip.bottom .tooltip-arrow { border-bottom-color: #b6b097; }
-        .tooltip.left .tooltip-arrow { border-left-color: #b6b097; }
+        .tooltip-inner {
+            background-color: #b6b097;
+            color: #33312e;
+        }
 
-        .text-genres { color: #5d4685; }
-        .text-year { color: #3c889b; }
-        .text-rating { color: #44810c; }
+        .tooltip.top .tooltip-arrow {
+            border-top-color: #b6b097;
+        }
+
+        .tooltip.right .tooltip-arrow {
+            border-right-color: #b6b097;
+        }
+
+        .tooltip.bottom .tooltip-arrow {
+            border-bottom-color: #b6b097;
+        }
+
+        .tooltip.left .tooltip-arrow {
+            border-left-color: #b6b097;
+        }
+
+        .text-genres {
+            color: #5d4685;
+        }
+
+        .text-year {
+            color: #3c889b;
+        }
+
+        .text-rating {
+            color: #44810c;
+        }
 
     </style>
     <title>MovieTool</title>
@@ -66,7 +93,7 @@
     <div class="row">
         <div class="column1 col-2 position-fixed  h-100 text-white">
 
-            <a href="/" class="appname text-decoration-none">MovieTool</a>
+            <a class="appname text-decoration-none" href="/">MovieTool</a>
 
             <hr>
             <h6><span th:utext="${sidePanelInfo}"/></h6>
@@ -80,11 +107,12 @@
             </ul>
             <br>
             <div class="d-grid gap-2">
-                <button onclick="callUrl('/action_scanmoviefolder')" class="actionbutton btn btn-primary btn-sm" type="button">Scan Movie Folder
+                <button class="actionbutton btn btn-primary btn-sm" onclick="callUrl('/action_scanmoviefolder')"
+                        type="button">Scan Library
                 </button>
-                <button onclick="callUrl('/action_retrievemovieinfo')" class="actionbutton btn btn-primary btn-sm" type="button">Retrieve Movie Info
-                </button>
-                <button onclick="callUrl('/testjob')" class="actionbutton btn btn-primary btn-sm" type="button">Dummy Job</button>
+                <!--                <button onclick="callUrl('/action_retrievemovieinfo')" class="actionbutton btn btn-primary btn-sm" type="button">Retrieve Movie Info-->
+                <!--                </button>-->
+                <!--                <button onclick="callUrl('/testjob')" class="actionbutton btn btn-primary btn-sm" type="button">Dummy Job</button>-->
             </div>
             <div id="jobList">jl</div>
 

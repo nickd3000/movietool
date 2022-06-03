@@ -101,13 +101,13 @@ public class JobManager {
             str += "<div class='alert alert-info p-1' role='alert'>" + job.getJobType().getDisplayName() + "</div>";
         }
 
-        int completedCount =0;
-        for (int i=completedJobList.size()-1;i>0;i--) {
+        int completedCount = 0;
+        for (int i = completedJobList.size() - 1; i > 0; i--) {
             Job job = completedJobList.get(i);
-            if (job==null && job.getResultText()==null) continue;
-            str += "<br>"+job.getResultText();
+            if (job == null && job.getResultText() == null) continue;
+            str += "<br>" + job.getResultText();
             completedCount++;
-            if (completedCount>16) break;
+            if (completedCount > 16) break;
         }
 //        for (Job job : completedJobList) {
 //            str += "<div class='alert alert-secondary p-1' role='alert'>"+job.getJobType().name()+"</div>";

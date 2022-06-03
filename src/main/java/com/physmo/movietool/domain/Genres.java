@@ -2,7 +2,7 @@ package com.physmo.movietool.domain;
 
 import java.io.Serializable;
 
-public class Genres  implements Serializable {
+public class Genres implements Serializable {
     private Genre[] genres;
 
     public Genre[] getGenres() {

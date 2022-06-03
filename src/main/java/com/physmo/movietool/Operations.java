@@ -114,7 +114,7 @@ public class Operations {
         job.setCurrentProgress(50);
         Set<String> removedFileSet = removeMissingFiles(dataStore, config.getMovieFolderPath());
         job.setComplete(true);
-        job.setResultText("Removed "+removedFileSet.size()+" missing files");
+        job.setResultText("Removed " + removedFileSet.size() + " missing files");
     }
 
     // Check each file in the file list, if it no longer exists remove it from the list.
@@ -141,7 +141,7 @@ public class Operations {
         job.setCurrentProgress(50);
         Set<String> newFileSet = scanMovieFolder(dataStore, config.getMovieFolderPath());
         job.setComplete(true);
-        job.setResultText("Discovered "+newFileSet.size()+" new files");
+        job.setResultText("Discovered " + newFileSet.size() + " new files");
     }
 
     public Set<String> scanMovieFolder(DataStore dataStore, String filePath) {
@@ -211,7 +211,7 @@ public class Operations {
         }
         saveDataStore(dataStore);
         job.setComplete(true);
-        job.setResultText("Retrieved "+retrievalCount+" movie data");
+        job.setResultText("Retrieved " + retrievalCount + " movie data");
     }
 
     public void startJobRetrieveMovieInfo(Job job) {
@@ -246,7 +246,7 @@ public class Operations {
 
         saveDataStore(dataStore);
         job.setComplete(true);
-        job.setResultText("Retrieved "+retrievalCount+" movie info");
+        job.setResultText("Retrieved " + retrievalCount + " movie info");
     }
 
     public void startJobRetrieveCollectionData(Job job) {
@@ -286,6 +286,6 @@ public class Operations {
 
         saveDataStore(dataStore);
         job.setComplete(true);
-        job.setResultText("Retrieved "+count+" collection data");
+        job.setResultText("Retrieved " + count + " collection data");
     }
 }

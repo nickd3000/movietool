@@ -120,7 +120,7 @@ public class TMDBService {
     }
 
     //https://api.themoviedb.org/3/genre/movie/list?api_key=<<api_key>>&language=en-US
-    public  Genres getGenres() {
+    public Genres getGenres() {
         String url = "https://api.themoviedb.org/3/genre/movie/list?api_key={api_key}&language={language}";
         Map<String, Object> uriVariables = new HashMap<>();
         uriVariables.put("api_key", config.getTmdbApiKey());

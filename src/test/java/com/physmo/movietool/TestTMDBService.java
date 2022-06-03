@@ -1,12 +1,7 @@
 package com.physmo.movietool;
 
-import com.physmo.movietool.domain.Movie;
-import com.physmo.movietool.domain.MovieCollection;
-import com.physmo.movietool.domain.movieinfo.MovieInfo;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.Map;
 
 public class TestTMDBService {
 
