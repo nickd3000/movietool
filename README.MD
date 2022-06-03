@@ -7,6 +7,12 @@ A [TMDB API key](https://developers.themoviedb.org/3/getting-started/introductio
 
 When running, access using a web browser at [http://localhost:2001](http://localhost:2001)
 
+Example command to run app from the command line
+(Substitute everything in [] with your own values)
+```
+java -jar -Dmovietool.datafilepath=/Users/nick/dev/datafiles/movietool -Dmovietool.moviefolderpath=/Users/nick/dev/datafiles/movietool/movies -Dmovietool.tmdbapikey=08426a90edd7782658d2536206aa6e2a movietool-1.1.1.jar
+```
+
 ### Features
 - Scan your library and retrieve movie details from [TMDB](https://www.themoviedb.org).
 - Show duplicated files.
