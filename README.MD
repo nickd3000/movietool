@@ -10,7 +10,7 @@ When running, access using a web browser at [http://localhost:2001](http://local
 Example command to run app from the command line
 (Substitute everything in [] with your own values)
 ```
-java -jar -Dmovietool.datafilepath=/Users/nick/dev/datafiles/movietool -Dmovietool.moviefolderpath=/Users/nick/dev/datafiles/movietool/movies -Dmovietool.tmdbapikey=08426a90edd7782658d2536206aa6e2a movietool-1.1.1.jar
+java -jar -Dmovietool.datafilepath=[path to save config to] -Dmovietool.moviefolderpath=[movie folder path] -Dmovietool.tmdbapikey=[your personal TMDB api key] movietool-1.1.1.jar
 ```
 
 ### Features
