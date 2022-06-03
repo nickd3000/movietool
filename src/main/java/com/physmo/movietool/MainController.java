@@ -187,7 +187,7 @@ public class MainController {
     @GetMapping("/action_retrievemovieinfo")
     public String actionRetrieveMovieInfo() {
         Genres genres = tmdbService.getGenres();
-        System.out.println("LOADED GENRES "+genres.getGenres().length);
+        System.out.println("LOADED GENRES " + genres.getGenres().length);
         dataStore.setGenres(genres);
         operations.saveDataStore(dataStore);
 
@@ -199,12 +199,21 @@ public class MainController {
         return "";
     }
 
-    // Test creating testjob from button
+
     @ResponseBody
     @GetMapping("/action_scanmoviefolder")
     public String actionScanMovieFolder() {
         jobManager.addJob(JOB_TYPE.removeMissingFiles);
         jobManager.addJob(JOB_TYPE.scanMovieFolder);
+
+        Genres genres = tmdbService.getGenres();
+        System.out.println("LOADED GENRES " + genres.getGenres().length);
+        dataStore.setGenres(genres);
+        operations.saveDataStore(dataStore);
+
+        jobManager.addJob(JOB_TYPE.retrieveMovieData);
+        jobManager.addJob(JOB_TYPE.retrieveMovieInfo);
+        jobManager.addJob(JOB_TYPE.retrieveCollectionsData);
         return "";
     }
 }

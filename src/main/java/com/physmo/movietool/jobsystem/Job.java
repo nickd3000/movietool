@@ -6,6 +6,7 @@ public class Job {
     int maxProgress = 0;
     private int id;
     private JOB_TYPE jobType;
+    private String resultText;
 
     public String getResultText() {
         return resultText;
@@ -14,8 +15,6 @@ public class Job {
     public void setResultText(String resultText) {
         this.resultText = resultText;
     }
-
-    private String resultText;
 
     public boolean isComplete() {
         return complete;
