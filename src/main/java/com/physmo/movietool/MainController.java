@@ -3,7 +3,6 @@ package com.physmo.movietool;
 import com.physmo.movietool.domain.DataStore;
 import com.physmo.movietool.domain.Genres;
 import com.physmo.movietool.domain.Link;
-import com.physmo.movietool.domain.PageComposer;
 import com.physmo.movietool.jobsystem.JOB_TYPE;
 import com.physmo.movietool.jobsystem.JobManager;
 import org.springframework.stereotype.Controller;
@@ -23,18 +22,16 @@ public class MainController {
     final Reports reports;
     final Operations operations;
     final TMDBService tmdbService;
-    final PageComposer pageComposer;
 
     final JobManager jobManager;
 
-    public MainController(Config config, DataStore dataStore, TMDBService tmdbService, Operations operations, Reports reports, PageComposer pageComposer, JobManager jobManager) {
+    public MainController(Config config, DataStore dataStore, TMDBService tmdbService, Operations operations, Reports reports, JobManager jobManager) {
         this.config = config;
         this.dataStore = dataStore;
         System.out.println("Controller: datastore size=" + dataStore.getFileListEntryList().size());
         this.tmdbService = tmdbService;
         this.operations = operations;
         this.reports = reports;
-        this.pageComposer = pageComposer;
         this.jobManager = jobManager;
     }
 
