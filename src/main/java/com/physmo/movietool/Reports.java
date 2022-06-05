@@ -226,7 +226,7 @@ public class Reports {
         needList.sort(Comparator.comparing(Movie::getVote_average).reversed());
 
         for (Movie m : ownedList) {
-            String rating = m.getVote_average().toString();
+            Double rating = m.getVote_average();
             String fullMovieString = createMovieDetailsRow(
                     m.getId(), m.getTitle(), "" + year, true, rating, null, null);
             str += fullMovieString;
@@ -235,7 +235,7 @@ public class Reports {
         for (Movie m : needList) {
 
             String overview = sanitizeText(m.getOverview());
-            String rating = m.getVote_average().toString();
+            double rating = m.getVote_average();
             String fullMovieString = createMovieDetailsRow(
                     m.getId(), m.getTitle(), "" + year, false, rating, getGenres(m), overview);
             str += fullMovieString;
@@ -270,7 +270,7 @@ public class Reports {
     // [missing popular] Magnolia 1999 (i) 7.7 Drama
     // [collections report] Star Wars (1977) (tick)
     // [collections report] The Hangover Part II (2011)
-    public String createMovieDetailsRow(int movieId, String name, String date, Boolean owned, String rating, String genres, String info) {
+    public String createMovieDetailsRow(int movieId, String name, String date, Boolean owned, Double rating, String genres, String info) {
 
         String str = "";
 
@@ -286,10 +286,28 @@ public class Reports {
             str += " " + createTooltipIcon(info);
         }
         if (owned) str += " " + TICK_IMAGE;
-        if (rating != null) str += " <span class='text-rating'>" + rating + "</span>";
+        if (rating != null) str += formatRating(rating);
         if (genres != null) str += " <span class='text-genres'>" + genres + "</span>";
 
 
+        return str;
+    }
+
+
+    public String formatRating(double rating) {
+        String str;
+        String ratingClass = "text-rating-d";
+
+        // not sure how I want the rating colors to work yet so let's do this in a crappy way for now.
+        if (rating > 7.5) {
+            ratingClass = "text-rating-a";
+        } else if (rating > 5) {
+            ratingClass = "text-rating-b";
+        } else if (rating > 4) {
+            ratingClass = "text-rating-c";
+        }
+
+        str = " <span class='"+ratingClass+"'>" + rating + "</span>";
         return str;
     }
 
@@ -331,10 +349,10 @@ public class Reports {
         // Build output.
 
         for (CollectionReportCollection collection : collections) {
-            if (isFullSet(collection)) str += formatCollection(collection);
+            if (isFullSet(collection)) str += formatCollection(collection, true);
         }
         for (CollectionReportCollection collection : collections) {
-            if (!isFullSet(collection)) str += formatCollection(collection);
+            if (!isFullSet(collection)) str += formatCollection(collection, false);
         }
 
         log.info("Generating collections report - DONE");
@@ -350,8 +368,12 @@ public class Reports {
         return true;
     }
 
-    public String formatCollection(CollectionReportCollection collection) {
+    public String formatCollection(CollectionReportCollection collection, boolean full) {
         String str = BR + BR + "<b>" + collection.getName() + "</b>";
+
+        if (full) {
+            str+= " <span class='badge rounded-pill bg-success'>Complete</span>";
+        }
 
         collection.getMovies().sort((o1, o2) -> {
             String date1 = o1.getDate();
@@ -366,9 +388,14 @@ public class Reports {
             int iYear = getYearFromReleaseDate(movie.getDate());
             String year = iYear == -1 ? "unreleased" : "" + iYear;
 
+            MovieInfo movieInfo = dataStore.getMovieInfo().get(movie.getId());
+            double rating = -1;
+            if (movieInfo!=null) {
+                rating = movieInfo.getVote_average();
+            }
 
             String fullMovieString = createMovieDetailsRow(
-                    movie.getId(), movie.getName(), year, movie.isOwned(), null, null, null);
+                    movie.getId(), movie.getName(), year, movie.isOwned(), rating==-1?null:rating, null, null);
             str += fullMovieString;
         }
         return str;
