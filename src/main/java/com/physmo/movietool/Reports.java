@@ -148,7 +148,11 @@ public class Reports {
         if (movieInfo != null) {
             CollectionDetails belongs_to_collection = movieInfo.getBelongs_to_collection();
             if (belongs_to_collection != null) {
-                entries.set(3, belongs_to_collection.getName());
+
+                int collectionId = belongs_to_collection.getId();
+                String collectionLink = "<a href='/collectionsreport#"+collectionId+"'>"+belongs_to_collection.getName()+"</a>";
+                entries.set(3, collectionLink);
+
             }
         }
 
@@ -308,6 +312,7 @@ public class Reports {
         for (MovieCollection movieCollection : dataStore.getMovieCollectionMap().values()) {
             CollectionReportCollection newCollection = new CollectionReportCollection();
             newCollection.setName(movieCollection.getName());
+            newCollection.setId(movieCollection.getId());
 
             for (Movie movie : movieCollection.getParts()) {
                 boolean owned = false;
@@ -349,7 +354,8 @@ public class Reports {
     }
 
     public String formatCollection(CollectionReportCollection collection, boolean full) {
-        String str = "<b>" + collection.getName() + "</b>";
+        String anchor = "<a id='"+collection.getId()+"'></a>";
+        String str = anchor+"<b>" + collection.getName() + "</b>";
 
         if (full) {
             str += " <span class='badge rounded-pill bg-success'>Complete</span>";
