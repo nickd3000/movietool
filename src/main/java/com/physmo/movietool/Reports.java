@@ -8,7 +8,6 @@ import com.physmo.movietool.domain.Movie;
 import com.physmo.movietool.domain.MovieCollection;
 import com.physmo.movietool.domain.movieinfo.CollectionDetails;
 import com.physmo.movietool.domain.movieinfo.MovieInfo;
-import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -38,10 +37,6 @@ public class Reports {
         this.dataStore = dataStore;
     }
 
-    public String getLocalList() {
-        return "";
-    }
-
     public String getMoviesWithNoDate() {
         String ret = "";
         for (FileListEntry fileListEntry : dataStore.getFileListEntryList()) {
@@ -64,11 +59,11 @@ public class Reports {
         str += "<h3>" + movieInfo.getTagline() + "</h3>";
 
         str += "<table>";
-        str += makeTwoColumnTableEntry("Popularity", String.valueOf(movieInfo.getPopularity()));
-        str += makeTwoColumnTableEntry("Overview", movieInfo.getOverview());
-        str += makeTwoColumnTableEntry("Budget", String.valueOf(movieInfo.getBudget()));
-        str += makeTwoColumnTableEntry("Revenue", String.valueOf(movieInfo.getRevenue()));
-        str += makeTwoColumnTableEntry("Runtime", String.valueOf(movieInfo.getRuntime()));
+        str += HtmlHelpers.makeTwoColumnTableEntryAsHtml("Popularity", String.valueOf(movieInfo.getPopularity()));
+        str += HtmlHelpers.makeTwoColumnTableEntryAsHtml("Overview", movieInfo.getOverview());
+        str += HtmlHelpers.makeTwoColumnTableEntryAsHtml("Budget", String.valueOf(movieInfo.getBudget()));
+        str += HtmlHelpers.makeTwoColumnTableEntryAsHtml("Revenue", String.valueOf(movieInfo.getRevenue()));
+        str += HtmlHelpers.makeTwoColumnTableEntryAsHtml("Runtime", String.valueOf(movieInfo.getRuntime()));
 
         str += "</table>";
 
@@ -76,9 +71,7 @@ public class Reports {
 
     }
 
-    public String makeTwoColumnTableEntry(String str1, String str2) {
-        return "<tr><td>" + str1 + "</td><td>" + str2 + "</td></tr>";
-    }
+
 
     public String getLibrarySummary() {
         String ret = "";
@@ -103,27 +96,16 @@ public class Reports {
     public String getFileList() {
         String output = "";
 
-        boolean includeCollection = true;
-
-        output += "<table>";
+        output += "<table id='file-list-table' class='display compact stripe' style='width:100%'>";
+        output += "<thead><tr><th>Name</th><th>Year</th><th>Rating</th><th>Collection</th><th>Run Time</th></tr></thead>";
         for (FileListEntry fileListEntry : dataStore.getFileListEntryList()) {
-            output += "<tr>";
-            output += "<td>" + fileListEntry.getFileName() + "</td>";
-            output += "<td>" + fileListEntry.getId() + "</td>";
-            if (fileListEntry.getId() != 0) {
-                Movie movie = dataStore.getMovieMap().get(fileListEntry.getId());
-                if (movie == null) {
-                    output += "<td>" + "movie not found in map" + "</td>";
-                } else {
-                    String linkedTitle = makeLink(movie.getTitle(), "/movieinfo/" + movie.getId());
-                    output += "<td>" + linkedTitle + "</td>";
-                }
-            } else {
-                output += "<td>" + "unmatched" + "</td>";
-            }
+            MovieInfo movieInfo = dataStore.getMovieInfo().get(fileListEntry.getId());
 
-            if (includeCollection) {
-                output += "<td>" + getCollectionNameForMovieId(fileListEntry.getId()) + "</td>";
+            output += "<tr>";
+
+            List<String> fileListRow = buildFileListRow(fileListEntry);
+            for (String tableData : fileListRow) {
+                output += "<td>" + tableData + "</td>";
             }
 
             output += "</tr>";
@@ -133,21 +115,58 @@ public class Reports {
         return output;
     }
 
-    public String getCollectionNameForMovieId(int movieId) {
-        if (movieId == 0) return "";
+    public List<String> buildFileListRow(FileListEntry fileListEntry) {
+        List<String> entries = new ArrayList<>(5);
 
-        MovieInfo movieInfo = dataStore.getMovieInfo().get(movieId);
-        if (movieInfo == null) return "";
+        for (int i = 0; i < 5; i++) {
+            entries.add("");
+        }
 
-        CollectionDetails belongs_to_collection = movieInfo.getBelongs_to_collection();
-        if (belongs_to_collection == null) return "";
+        Movie movie = dataStore.getMovieMap().get(fileListEntry.getId());
+        MovieInfo movieInfo = null;
+        if (movie != null) movieInfo = dataStore.getMovieInfo().get(movie.getId());
 
-        return belongs_to_collection.getName();
+        // Movie / File name.
+        if (movie != null) {
+            String linkedTitle = HtmlHelpers.makeLinkAsHtml(movie.getTitle(), "/movieinfo/" + movie.getId());
+            entries.set(0, linkedTitle);
+        } else {
+            entries.set(0, fileListEntry.getFileName());
+        }
+
+        // Year
+        if (movie != null) {
+            entries.set(1, "" + HtmlHelpers.getYearFromReleaseDate(movie.getRelease_date()));
+        }
+
+        // Rating
+        if (movieInfo != null) {
+            entries.set(2, "" + movieInfo.getVote_average());
+        }
+
+        // Collection
+        if (movieInfo != null) {
+            CollectionDetails belongs_to_collection = movieInfo.getBelongs_to_collection();
+            if (belongs_to_collection != null) {
+                entries.set(3, belongs_to_collection.getName());
+            }
+        }
+
+        // Runtime
+        if (movieInfo != null) {
+            if (movieInfo.getRuntime() == null) entries.set(4, "0");
+            else entries.set(4, "" + movieInfo.getRuntime());
+        } else {
+            entries.set(4, "0");
+        }
+
+
+        return entries;
     }
 
-    public String makeLink(String text, String link) {
-        return "<a href='" + link + "'>" + text + "</a>";
-    }
+
+
+
 
     public String getUnmatchedFileList() {
         String str = "";
@@ -234,7 +253,7 @@ public class Reports {
         str += BR;
         for (Movie m : needList) {
 
-            String overview = sanitizeText(m.getOverview());
+            String overview = HtmlHelpers.sanitizeText(m.getOverview());
             double rating = m.getVote_average();
             String fullMovieString = createMovieDetailsRow(
                     m.getId(), m.getTitle(), "" + year, false, rating, getGenres(m), overview);
@@ -255,38 +274,22 @@ public class Reports {
         return "<span class='text-genres'>" + str + "</span>";
     }
 
-    public String sanitizeText(String txt) {
-        txt = txt.replace("'", "");
-        return StringEscapeUtils.escapeHtml4(txt);
-    }
 
-    // for use by missing popular and collections report
-    // name
-    // year - no brackets, colored, link to year page
-    // info icon
-    // owned icon
-    // rating (optional)
-    // genre - colored
-    // [missing popular] Magnolia 1999 (i) 7.7 Drama
-    // [collections report] Star Wars (1977) (tick)
-    // [collections report] The Hangover Part II (2011)
+
     public String createMovieDetailsRow(int movieId, String name, String date, Boolean owned, Double rating, String genres, String info) {
 
         String str = "";
-
         String TICK_IMAGE = "<img src='/tick.png' width='16' height='16'>";
-
         String namePart = name;
-
 
         // Build it
         str += BR + name + " ";
         if (date != null) str += " <span class='text-year'>" + date + "</span>";
         if (info != null) {
-            str += " " + createTooltipIcon(info);
+            str += " " + HtmlHelpers.createTooltipIconAsHtml(info);
         }
         if (owned) str += " " + TICK_IMAGE;
-        if (rating != null) str += formatRating(rating);
+        if (rating != null) str += HtmlHelpers.formatRatingAsHtml(rating);
         if (genres != null) str += " <span class='text-genres'>" + genres + "</span>";
 
 
@@ -294,29 +297,7 @@ public class Reports {
     }
 
 
-    public String formatRating(double rating) {
-        String str;
-        String ratingClass = "text-rating-d";
 
-        // not sure how I want the rating colors to work yet so let's do this in a crappy way for now.
-        if (rating > 7.5) {
-            ratingClass = "text-rating-a";
-        } else if (rating > 5) {
-            ratingClass = "text-rating-b";
-        } else if (rating > 4) {
-            ratingClass = "text-rating-c";
-        }
-
-        str = " <span class='"+ratingClass+"'>" + rating + "</span>";
-        return str;
-    }
-
-    public String createTooltipIcon(String tooltip) {
-
-        String str = " <img src='/info.png' width='16' height='16' data-bs-toggle='tooltip' data-bs-placement='right' title='" + tooltip + "' >";
-        //String str = text + " <img src='/info.png' width='16' height='16'  >";
-        return str;
-    }
 
     public String getCollectionsReport() {
         String str = "";
@@ -347,12 +328,11 @@ public class Reports {
         }
 
         // Build output.
-
         for (CollectionReportCollection collection : collections) {
-            if (isFullSet(collection)) str += formatCollection(collection, true);
+            if (isFullSet(collection)) str += formatCollection(collection, true) + "<br><br>";
         }
         for (CollectionReportCollection collection : collections) {
-            if (!isFullSet(collection)) str += formatCollection(collection, false);
+            if (!isFullSet(collection)) str += formatCollection(collection, false) + "<br><br>";
         }
 
         log.info("Generating collections report - DONE");
@@ -369,10 +349,10 @@ public class Reports {
     }
 
     public String formatCollection(CollectionReportCollection collection, boolean full) {
-        String str = BR + BR + "<b>" + collection.getName() + "</b>";
+        String str = "<b>" + collection.getName() + "</b>";
 
         if (full) {
-            str+= " <span class='badge rounded-pill bg-success'>Complete</span>";
+            str += " <span class='badge rounded-pill bg-success'>Complete</span>";
         }
 
         collection.getMovies().sort((o1, o2) -> {
@@ -385,27 +365,20 @@ public class Reports {
 
         for (CollectionsReportMovie movie : collection.getMovies()) {
 
-            int iYear = getYearFromReleaseDate(movie.getDate());
+            int iYear = HtmlHelpers.getYearFromReleaseDate(movie.getDate());
             String year = iYear == -1 ? "unreleased" : "" + iYear;
 
             MovieInfo movieInfo = dataStore.getMovieInfo().get(movie.getId());
             double rating = -1;
-            if (movieInfo!=null) {
+            if (movieInfo != null) {
                 rating = movieInfo.getVote_average();
             }
 
             String fullMovieString = createMovieDetailsRow(
-                    movie.getId(), movie.getName(), year, movie.isOwned(), rating==-1?null:rating, null, null);
+                    movie.getId(), movie.getName(), year, movie.isOwned(), rating == -1 ? null : rating, null, null);
             str += fullMovieString;
         }
         return str;
-    }
-
-    public int getYearFromReleaseDate(String releaseDate) {
-        // e.g. "2004-04-13"
-        if (releaseDate == null || releaseDate.length() < 6) return -1;
-        int year = Integer.parseInt(releaseDate.substring(0, 4));
-        return year;
     }
 
     public String countMoviesPerYear() {
@@ -415,7 +388,7 @@ public class Reports {
 
         for (Integer movieId : dataStore.getMovieMap().keySet()) {
             Movie movie = dataStore.getMovieMap().get(movieId);
-            int year = getYearFromReleaseDate(movie.getRelease_date());
+            int year = HtmlHelpers.getYearFromReleaseDate(movie.getRelease_date());
             if (year != -1) {
                 int count = 1;
                 if (yearCounts.get(year) != null) {
@@ -437,14 +410,14 @@ public class Reports {
 
             int count = yearCounts.get(key);
 
-            String yearLink = makeLink(key.toString(), "findmissingpopularmovies/" + key);
+            String yearLink = HtmlHelpers.makeLinkAsHtml(key.toString(), "findmissingpopularmovies/" + key);
 
             str += "<div class='row'>";
             str += "<div class='col-md-1'>";
             str += "" + yearLink + " ";
             str += "</div>";
             str += "<div class='col-md-10'>";
-            str += createHtmlBar(count, maxCount);
+            str += HtmlHelpers.createBarAsHtml(count, maxCount);
             str += "</div>";
             str += "</div>";
         }
@@ -453,17 +426,6 @@ public class Reports {
         return str;
     }
 
-    public String createHtmlBar(int count, int maxCount) {
-        int maxSize = 100;
-        int barLength = (int) ((double) maxSize * ((double) count) / (double) maxCount);
-        if (barLength < 0) barLength = 0;
-        if (barLength > 100) barLength = 100;
 
-        String str = "<span class='progress  w-80'>";
-        str += "<span class='progress-bar bg-info ' role='progressbar' style='width: " + barLength + "%' >" + count + "</span>";
-        str += "</span>";
-        return str;
-    }
-// https://code-with-me.global.jetbrains.com/KgRAXOZxmPWJPCIGCTQ9Mg#p=IU&fp=AF0023834A562EB8395991BAFEEC6073DE61211DA31B169C205AE37781D1BCC6
 
 }

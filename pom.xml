@@ -82,6 +82,11 @@
             <artifactId>commons-text</artifactId>
             <version>1.9</version>
         </dependency>
+        <dependency>
+            <groupId>org.webjars</groupId>
+            <artifactId>datatables</artifactId>
+            <version>1.11.4</version>
+        </dependency>
     </dependencies>
 
     <build>
