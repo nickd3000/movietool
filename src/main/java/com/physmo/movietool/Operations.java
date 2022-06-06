@@ -41,19 +41,13 @@ public class Operations {
 
         String path = config.getDataFilePath() + File.separatorChar + config.getDataFileName();
 
-        //DataStore dataStore;
-
         try {
             diskOperations.loadDataStore(path, dataStore);
-            //System.out.println("Loaded data store");
         } catch (FileNotFoundException e) {
-            //System.out.println("Data store not found, creating new.");
             dataStore = new DataStore();
             saveDataStore(dataStore);
         }
 
-
-        //return dataStore;
     }
 
     public void saveDataStore(DataStore dataStore) {
@@ -65,33 +59,6 @@ public class Operations {
             throw new RuntimeException(e);
         }
     }
-
-    // Return list of movie collections that we have at least one movie in.
-//    public void retrieveMovieCollections(DataStore dataStore) {
-//        Set<Integer> collectionSet = new HashSet<>();
-//        log.info("Retrieving movie collection data from MDB");
-//
-//        // Get list of movie collection IDs.
-//        for (FileListEntry fileListEntry : dataStore.getFileListEntryList()) {
-//            if (fileListEntry.getId() == 0) continue; // ID of 0 means we haven't found this movie.
-//
-//            MovieInfo movieInfo = dataStore.getMovieInfo().get(fileListEntry.getId());
-//
-//            if (movieInfo == null) continue;
-//            if (movieInfo.getBelongs_to_collection() == null) continue;
-//
-//            Integer collectionId = movieInfo.getBelongs_to_collection().getId();
-//            collectionSet.add(collectionId);
-//        }
-//
-//        // Retrieve any we haven't stored already.
-//        for (Integer collectionId : collectionSet) {
-//            if (dataStore.getMovieCollectionMap().containsKey(collectionId)) continue;
-//            dataStore.getMovieCollectionMap().put(collectionId, tmdbService.getMovieCollection(collectionId));
-//
-//        }
-//        log.info("DONE");
-//    }
 
     public void startDummyJob(Job job) {
         System.out.println("startDummyJob");

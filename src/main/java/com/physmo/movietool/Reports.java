@@ -264,7 +264,6 @@ public class Reports {
             str += fullMovieString;
         }
 
-
         return str;
     }
 
