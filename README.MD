@@ -5,6 +5,8 @@
 A Java based application for scanning movie file collections, showing missing movies from collections, and recommending top movies per year.
 A [TMDB API key](https://developers.themoviedb.org/3/getting-started/introduction) is required to use this.
 
+This app will scan your movie/Plex library folder and provide you a nice web interface with suggestions of movies you don't have, your movie collections and what you would need to complete them, a graph of how many movies you have for each year and suggestions on the top movies for each year that are not already in your collection.
+
 When running, access using a web browser at [http://localhost:2001](http://localhost:2001)
 
 Example command to run app from the command line
