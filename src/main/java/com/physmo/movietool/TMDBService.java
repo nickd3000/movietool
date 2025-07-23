@@ -89,7 +89,7 @@ public class TMDBService {
 
         Map<Integer, Movie> movieMap = new HashMap<>();
 
-        int pageCount = 2;
+        int pageCount = 3;
 
         for (String sortBy : sortList) {
             for (int page = 1; page <= pageCount; page++) {
